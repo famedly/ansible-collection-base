@@ -1,0 +1,46 @@
+---
+#- hosts: [ debian ]
+#  gather_facts: no
+#  pre_tasks:
+#    - name: ensure python is installed
+#      raw: test -e /usr/bin/python3 || (apt -y update && apt install -y python3)
+
+- hosts: [ debian ]
+  roles:
+    - role: user
+      become: yes
+
+- hosts: [ debian ]
+  tasks:
+    - name: Install basic packages
+      apt:
+        name:
+          - lsb-release
+          - mtr
+          - neovim
+          - libpq-dev
+      become: yes
+      register: task_result
+      until: task_result is success
+      retries: 3
+      delay: 2
+
+- hosts: [ debian ]
+  become: yes
+  vars:
+    pip_package: python3-pip
+    pip_install_packages:
+      - name: docker
+  roles:
+    - pip
+    - docker
+
+- hosts: [ debian ]
+  become: yes
+  tasks:
+    - name: log in to gitlab
+      docker_login:
+        registry: registry.gitlab.com
+        username: "{{ vault_gitlab_registry_auth.user }}"
+        password: "{{ vault_gitlab_registry_auth.pass }}"
+        state: present
