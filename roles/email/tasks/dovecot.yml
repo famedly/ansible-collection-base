@@ -1,0 +1,61 @@
+---
+  - name: Create group
+    group:
+      name: '{{ dovecot_user_name }}'
+
+  - name: Add the user '{{ dovecot_user_name }}'
+    user:
+      name: '{{ dovecot_user_name }}'
+      groups: '{{ dovecot_user_name }}'
+      comment: User to run dovecot-server
+      create_home: false
+    register: dovecot_user
+    become: true
+
+  - name: create directory for dovecot config and database
+    file:
+      path: '{{ dovecot_base_path }}'
+      state: directory
+      owner: "{{ dovecot_user.name }}"
+      group: "{{ dovecot_user.group }}"
+    become: true
+
+  - name: create directory for dovecot config and base
+    file:
+      path: '{{ dovecot_base_path }}/{{ item }}'
+      state: directory
+      mode: '0777'
+    become: true
+    with_items: 
+      - config
+      - base
+      - mail
+      - state
+
+  - name: copy config at the right location
+    template:
+      src: dovecot.conf
+      dest: "{{ dovecot_base_path }}/config"
+      owner: "{{ dovecot_user.name }}"
+      group: "{{ dovecot_user.group }}"
+      mode: '0644'
+    become: true
+
+  - name: install dovecot container
+    docker_container:
+      name: "{{ dovecot_docker_name }}"
+      image: "{{ dovecot_docker_image }}"
+      ports: "{{ dovecot_docker_ports }}"
+      labels: "{{ dovecot_docker_labels }}"
+      restart_policy: unless-stopped
+      recreate: true
+      pull: true
+      #user: "{{ dovecot_user.uid }}:{{ dovecot_user.group }}"
+      user: "root:root"
+      command: "-F" #print non default conf options
+      volumes:
+        - "{{ dovecot_base_path }}/config/dovecot.conf:/etc/dovecot/dovecot.conf"
+        - "{{ dovecot_base_path }}/base:{{ dovecot_base_path }}/base"
+        - "{{ dovecot_base_path }}/mail:{{ dovecot_base_path }}/mail"
+        - "{{ dovecot_base_path }}/state:{{ dovecot_base_path }}/state"
+    become: true

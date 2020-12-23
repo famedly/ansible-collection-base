@@ -1,0 +1,31 @@
+#postfix
+#postfix_user_name: postfix-user #TODO do not run as root
+email_base_path: "/opt/email"
+postfix_base_path: "{{ email_base_path }}/postfix"
+postfix_container_spool_path: /var/spool/postfix
+postfix_container_config_path: /etc/postfix
+postfix_config_files: #TODO Use
+  - main.cf
+  - master.cf
+postfix_container_dkim_path: /etc/opendkim/keys
+postfix_docker_name: postfix-server
+postfix_docker_image: registry.gitlab.com/famedly/containers/email
+postfix_docker_ports: 
+#  - 25:25
+  - 587:587
+    #  - 1587:1587 #smtp for dovecot
+postfix_docker_labels: {} #override e.g. for traefik
+
+postfix_hostname: mail.ratzupaltuff-test.famedly.de
+
+#dovecot
+dovecot_user_name: vmail
+dovecot_base_path: "{{ email_base_path }}/dovecot"
+dovecot_docker_name: dovecot-server
+dovecot_docker_image: registry.gitlab.com/famedly/containers/dovecot
+dovecot_docker_ports: 
+#  - 110:110 #pop3
+  - 143:143 #imap
+  - 993:993 #imap secure
+#  - 995:993 #pop3 secure
+dovecot_docker_labels: {}

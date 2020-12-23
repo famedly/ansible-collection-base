@@ -1,0 +1,2 @@
+postfix_docker_labels_base: {}
+postfix_docker_labels_complete: "{{ postfix_docker_labels_base | combine(postfix_docker_labels) }}"

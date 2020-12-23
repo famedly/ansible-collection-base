@@ -1,0 +1,45 @@
+---
+  - name: create directory for postfix config and database
+    file:
+      path: '{{ postfix_base_path }}'
+      state: directory
+    become: true
+
+  - name: create directory for postfix config and database and dkim
+    file:
+      path: '{{ postfix_base_path }}/{{ item }}'
+      state: directory
+    become: true
+    with_items: 
+      - spool #emails
+      - config
+#      - dkim
+
+  - name: configure postfix
+    template:
+      src: "postfix/{{ item }}"
+      dest: "{{ postfix_base_path }}/config/{{ item }}"
+      owner: root #TODO do not run as root
+      group: root
+      mode: '0744'
+    with_items:
+      - main.cf
+      - master.cf
+      - aliases.db
+
+  - name: install postfix container
+    docker_container:
+      name: "{{ postfix_docker_name }}"
+      image: "{{ postfix_docker_image }}"
+      ports: "{{ postfix_docker_ports }}"
+      labels: "{{ postfix_docker_labels }}"
+      restart_policy: unless-stopped
+      recreate: true
+      pull: true
+      volumes:
+        - "{{ postfix_base_path }}/spool:{{ postfix_container_spool_path }}"
+        - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"
+          # - "{{ postfix_base_path }}/config/master.cf:{{ postfix_container_config_path }}/master.cf" #currently default config
+        - "{{ postfix_base_path }}/config/aliases.db:{{ postfix_container_config_path }}/aliases.db" #where to send sending problems to
+#- "{{ postfix_base_path }}/dkim:{{ postfix_container_dkim_path }}"
+    become: true

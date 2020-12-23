@@ -1,0 +1,12 @@
+---
+  - name: create email directory
+    file:
+      path: '{{ email_base_path }}'
+      state: directory
+    become: true
+
+  - name: install postfix
+    import_tasks: postfix.yml
+
+  - name: install dovecot
+    import_tasks: dovecot.yml
