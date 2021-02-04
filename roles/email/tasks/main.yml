@@ -1,12 +1,37 @@
 ---
+  - name: Ensure group "{{ email_group_name }}" exists
+    ansible.builtin.group:
+      name: "{{ email_group_name }}"
+      state: present
+    become: true
+
   - name: create email directory
     file:
       path: '{{ email_base_path }}'
       state: directory
+      group: "{{ email_group_name }}"
     become: true
 
   - name: install postfix
     import_tasks: postfix.yml
+    become: true
+  
+  - name: install opendkim
+    import_tasks: opendkim.yml
+    become: true
 
   - name: install dovecot
     import_tasks: dovecot.yml
+    become: true
+
+  - name: create email docker-network
+    docker_network:
+      name: email
+      connected:
+        - "{{ postfix_docker_name }}"
+        - "{{ dovecot_docker_name }}"
+        - "{{ opendkim_docker_name }}"
+      ipam_config:
+        - subnet: "{{ email_network_prefix }}.0/24"
+          #aux_addresses: "{'{{ postfix_docker_name }}': '{{ email_network_prefix }}.2', '{{ dovecot_docker_name }}': '{{ email_network_prefix }}.3'}"
+    become: true

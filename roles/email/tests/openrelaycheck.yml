@@ -1,0 +1,9 @@
+---
+- name: connect to host
+  telnet:
+    host: "{{ postfix_hostname }}"
+    command:
+      - "HELO {{ postfix_hostname }}"
+      - "MAIL FROM: test@{{ email_domain }}"
+      - "RCPT TO: v.wilke@famedly.de"
+      - "DATA" #not tested this file has to be reviewed!

@@ -1,0 +1,9 @@
+---
+#opendkim-genkey --domain=email.ratzupaltuff-test.famedly.de --selector=ratzupaltuff-test --testmode
+
+#upload dkim key
+
+#test:
+#opendkim-testkey -d ratzupaltuff-test.famedly.de -s ratzupaltuff-test -k ratzupaltuff-test.private
+
+

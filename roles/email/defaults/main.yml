@@ -1,27 +1,34 @@
 #postfix
-#postfix_user_name: postfix-user #TODO do not run as root
+#user_config:
+postfix_user_name: postfix #TODO do not run as root
+opendkim_user_name: opendkim
+email_group_name: email
+
+email_domain: ratzupaltuff-test.famedly.de
 email_base_path: "/opt/email"
 postfix_base_path: "{{ email_base_path }}/postfix"
 postfix_container_spool_path: /var/spool/postfix
 postfix_container_config_path: /etc/postfix
-postfix_config_files: #TODO Use
+postfix_config_files:
   - main.cf
   - master.cf
 postfix_container_dkim_path: /etc/opendkim/keys
-postfix_docker_name: postfix-server
+postfix_docker_name: postfix
 postfix_docker_image: registry.gitlab.com/famedly/containers/email
-postfix_docker_ports: 
+postfix_docker_ports: []
 #  - 25:25
-  - 587:587
+#  - 587:587
     #  - 1587:1587 #smtp for dovecot
 postfix_docker_labels: {} #override e.g. for traefik
 
-postfix_hostname: mail.ratzupaltuff-test.famedly.de
+postfix_hostname: "mail.{{ email_domain }}"
+postfix_sender_networks: "172.3.0.0/24, 127.0.0.0/24" #comma separated
+email_network_prefix: "172.3.0"
 
 #dovecot
 dovecot_user_name: vmail
 dovecot_base_path: "{{ email_base_path }}/dovecot"
-dovecot_docker_name: dovecot-server
+dovecot_docker_name: dovecot
 dovecot_docker_image: registry.gitlab.com/famedly/containers/dovecot
 dovecot_docker_ports: 
 #  - 110:110 #pop3
@@ -29,3 +36,13 @@ dovecot_docker_ports:
   - 993:993 #imap secure
 #  - 995:993 #pop3 secure
 dovecot_docker_labels: {}
+
+#opendkim
+opendkim_base_path: "{{ email_base_path }}/opendkim"
+opendkim_docker_name: opendkim
+opendkim_docker_image: registry.gitlab.com/famedly/containers/dkim
+opendkim_docker_ports: []
+opendkim_docker_labels: {}
+opendkim_cert_path: "/var/db/dkim"
+opendkim_cert_filename: "{{ opendkim_selector_name }}.key.pem"
+opendkim_selector_name: ratzupaltuff-test #hostname or month/year

@@ -30,6 +30,7 @@
   - name: install postfix container
     docker_container:
       name: "{{ postfix_docker_name }}"
+      hostname: "{{ postfix_docker_name }}"
       image: "{{ postfix_docker_image }}"
       ports: "{{ postfix_docker_ports }}"
       labels: "{{ postfix_docker_labels }}"

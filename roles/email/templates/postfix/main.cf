@@ -282,7 +282,9 @@ unknown_local_recipient_reject_code = 550
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks
 #mynetworks = hash:/etc/postfix/network_table
-mynetworks = 127.0.0.0/8, 172.17.0.0/16
+mynetworks = {{ postfix_sender_networks }}
+#127.0.0.0/8
+#, 172.17.0.0/16 traefik uses this address too, if used you created an open relay
 
 # The relay_domains parameter restricts what destinations this system will
 # relay mail to.  See the smtpd_recipient_restrictions description in
@@ -608,7 +610,7 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-#debug_peer_list = 127.0.0.1
+debug_peer_list = 127.0.0.1, 172.3.0.4
 #debug_peer_list = some.domain
 
 # The debugger_command specifies the external command that is executed
