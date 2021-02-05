@@ -19,7 +19,7 @@
       {% for host in hostname_hosts %}
       {{ host.ip }}	{{ host.fqdn }}		{{ host.alias | default([]) | join(" ") }}
       {% endfor %}
-    marker: "# {MARK} ANSIBLE MANAGED BLOCK"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
 
 - name: Set hostname via hostnamectl to avoid a reboot
   command:
