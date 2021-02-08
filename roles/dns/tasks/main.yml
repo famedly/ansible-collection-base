@@ -52,7 +52,7 @@
     value: "{{ item.1.target|default(dns_host_name_short) }}.{{ item.0.zone }}"
     api_token: "{{ dns_cloudflare_api_key }}"
   loop: "{{ dns_cnames | subelements('names') }}"
-  when: dns_management_method ==  "cloudflare"
+  when: dns_management_method == "cloudflare"
 
 - name: Set SRV records
   cloudflare_dns:
@@ -67,5 +67,14 @@
     weight: "{{ item.1.weight|default(10) }}"
     api_token: "{{ dns_cloudflare_api_key }}"
   loop: "{{ dns_services | subelements('services') }}"
-  when: dns_management_method ==  "cloudflare"
+  when: dns_management_method == "cloudflare"
 
+- name: Set TXT records
+  cloudflare_dns:
+    type: TXT
+    zone: "{{ item.0.zone }}"
+    record: "{{ item.1.name }}"
+    value: "{{ item.1.content }}"
+    api_token: "{{ dns_cloudflare_api_key }}"
+  loop: "{{ dns_text_records | subelements('records') }}"
+  when: dns_management_method == "cloudflare"

@@ -24,4 +24,11 @@ dns_host_sshfp: []
 
 dns_cnames: []
 dns_services: []
-
+dns_text_records: []
+## Allow some-server.example-org to send mail from
+## all servers listed in MX some-server.example.org
+#dns_text_records:
+#  - zone: example.org
+#    records:
+#      - name: "some-server"
+#        content: "v=spf1 mx -all"
