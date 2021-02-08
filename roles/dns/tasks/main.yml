@@ -25,7 +25,7 @@
     and ((
       item[1].target is defined
         and item[1].target.ipv4 is defined)
-      or dns_host_ipv4 is defined)
+      or (dns_host_ipv4 is defined and item[1].target is undefined))
     and (item[1].only is undefined or item[1].only == item[0])
 
 - name: Set AAAA records
@@ -41,7 +41,7 @@
     and ((
       item[1].target is defined
         and item[1].target.ipv6 is defined)
-      or dns_host_ipv6 is defined)
+      or (dns_host_ipv6 is defined and item[1].target is undefined ))
     and (item[1].only is undefined or item[1].only == item[0])
 
 - name: Set CNAME records
