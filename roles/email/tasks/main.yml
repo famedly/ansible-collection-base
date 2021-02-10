@@ -12,17 +12,17 @@
       group: "{{ email_group_name }}"
     become: true
 
-  - name: install postfix
-    import_tasks: postfix.yml
-    become: true
+    #- name: install postfix
+    #  import_tasks: postfix.yml
+    #  become: true
   
   - name: install opendkim
     import_tasks: opendkim.yml
     become: true
 
-  - name: install dovecot
-    import_tasks: dovecot.yml
-    become: true
+    #- name: install dovecot
+    #import_tasks: dovecot.yml
+    #become: true
 
   - name: create email docker-network
     docker_network:

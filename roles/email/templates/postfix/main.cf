@@ -75,7 +75,7 @@ data_directory = /var/lib/postfix
 # particular, don't specify nobody or daemon. PLEASE USE A DEDICATED
 # USER.
 #
-mail_owner = postfix
+mail_owner = {{ postfix_user_name }}
 
 # The default_privs parameter specifies the default rights used by
 # the local delivery agent for delivery to external file or command.
@@ -610,7 +610,7 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-debug_peer_list = 127.0.0.1, 172.3.0.4
+debug_peer_list = 127.0.0.1, 172.3.0.1 #TODO
 #debug_peer_list = some.domain
 
 # The debugger_command specifies the external command that is executed
@@ -693,3 +693,6 @@ notify_classes = resource, software, bounce, 2bounce, delay, policy, protocol
 smtputf8_enable = no
 #Increase message size limit from 10MB(10240000) to 100MiB
 message_size_limit = 104857600
+
+smtpd_milters = inet:{{ opendkim_listening_address }}:8891
+non_smtpd_milters = inet:{{ opendkim_listening_address }}:8891

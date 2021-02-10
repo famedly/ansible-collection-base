@@ -25,7 +25,7 @@
     with_items:
       - main.cf
       - master.cf
-      - aliases.db
+      - aliases
 
   - name: install postfix container
     docker_container:
@@ -41,6 +41,6 @@
         - "{{ postfix_base_path }}/spool:{{ postfix_container_spool_path }}"
         - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"
           # - "{{ postfix_base_path }}/config/master.cf:{{ postfix_container_config_path }}/master.cf" #currently default config
-        - "{{ postfix_base_path }}/config/aliases.db:{{ postfix_container_config_path }}/aliases.db" #where to send sending problems to
+        - "{{ postfix_base_path }}/config/aliases:{{ postfix_container_config_path }}/aliases" #where to send sending problems to
 #- "{{ postfix_base_path }}/dkim:{{ postfix_container_dkim_path }}"
     become: true

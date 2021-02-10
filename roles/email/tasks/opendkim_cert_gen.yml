@@ -6,4 +6,11 @@
 #test:
 #opendkim-testkey -d ratzupaltuff-test.famedly.de -s ratzupaltuff-test -k ratzupaltuff-test.private
 
-
+  - name: copy private key
+    copy:
+      src: "files/{{ opendkim_cert_filename }}" 
+      dest: "{{ opendkim_base_path }}/certs/{{ opendkim_cert_filename }}"
+      #state: file
+      owner: "100" #"{{ opendkim_user.name }}"
+      group: "{{ opendkim_user.group }}"
+      mode: "0777" #TODO be more restrictive
