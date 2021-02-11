@@ -11,6 +11,7 @@
       src: "files/{{ opendkim_cert_filename }}" 
       dest: "{{ opendkim_base_path }}/certs/{{ opendkim_cert_filename }}"
       #state: file
-      owner: "100" #"{{ opendkim_user.name }}"
-      group: "{{ opendkim_user.group }}"
-      mode: "0777" #TODO be more restrictive
+      owner: root
+      #owner: "100" #"{{ opendkim_user.name }}"
+      #group: "{{ opendkim_user.group }}"
+      mode: "0700" #TODO be more restrictive
