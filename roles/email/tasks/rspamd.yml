@@ -1,0 +1,54 @@
+---
+  - name: Add rspamd group
+    ansible.builtin.group:
+      name: "{{ rspamd_group_name }}"
+      state: present
+ 
+  - name: Add rspamd user
+    ansible.builtin.user:
+      name: "{{ rspamd_user_name }}"
+      group: "{{ rspamd_group_name }}"
+    register: rspamd_user
+
+  - name: create directory for rspamd config and dkim-certs
+    file:
+      path: '{{ rspamd_base_path }}/{{ item }}'
+      state: directory
+      owner: root
+      owner: "{{ rspamd_user.name }}"
+      group: "{{ rspamd_user.group }}"
+      mode: '0700'
+    with_items:
+      - 
+      - certs
+      - config
+      - certs/rspamd
+
+  - name: configure rspamd
+    template:
+      src: "rspamd/rspamd.conf"
+      dest: "{{ rspamd_base_path }}/config/rspamd.conf"
+      owner: root
+      owner: "{{ rspamd_user.name }}"
+      group: "{{ rspamd_user.group }}"
+      mode: '0700'
+
+      #- name: rspamd cert-gen
+      #import_tasks: rspamd_cert_gen.yml #TODO
+
+  - name: install rspamd container
+    docker_container:
+      name: "{{ rspamd_docker_name }}"
+      hostname: "{{ rspamd_docker_name }}"
+      image: "{{ rspamd_docker_image }}"
+      ports: "{{ rspamd_docker_ports }}"
+      labels: "{{ rspamd_docker_labels }}"
+      restart_policy: unless-stopped
+      recreate: true
+      #user: "{{ rspamd_user.uid }}" #:{{ rspamd_user.group }}"
+      pull: true
+      command: "-x {{ rspamd_conf_path }}"
+      #command: "/usr/sbin/rspamd -f -l -p {{ rspamd_listening_socket }} -d {{ email_domain }} -k {{ rspamd_cert_path }}/{{ rspamd_cert_filename }} -s {{ rspamd_selector_name }}"
+      volumes:
+        - "{{ rspamd_base_path }}/certs/{{ rspamd_cert_filename }}:{{ rspamd_cert_filepath }}"
+        - "{{ rspamd_base_path }}/config/rspamd.conf:{{ rspamd_conf_path }}"

@@ -15,7 +15,7 @@ postfix_config_files:
   - master.cf
 postfix_container_dkim_path: /etc/opendkim/keys
 postfix_docker_name: postfix
-postfix_docker_image: registry.gitlab.com/famedly/containers/email
+postfix_docker_image: registry.gitlab.com/famedly/containers/email/postfix
 postfix_docker_ports: []
 postfix_smtpd_milters: 25 #dkim signed emails are sent there
 postfix_smtpd_milters_ip: "{{ email_network_prefix }}.4" #todo automate that #currently not used
@@ -32,7 +32,7 @@ email_network_prefix: "172.3.0"
 dovecot_user_name: vmail
 dovecot_base_path: "{{ email_base_path }}/dovecot"
 dovecot_docker_name: dovecot
-dovecot_docker_image: registry.gitlab.com/famedly/containers/dovecot
+dovecot_docker_image: registry.gitlab.com/famedly/containers/email/dovecot
 dovecot_docker_ports: 
 #  - 110:110 #pop3
   - 143:143 #imap
@@ -43,16 +43,25 @@ dovecot_docker_labels: {}
 #opendkim
 opendkim_base_path: "{{ email_base_path }}/opendkim"
 opendkim_docker_name: opendkim
-#opendkim_docker_image: registry.gitlab.com/famedly/containers/dkim
+#opendkim_docker_image: registry.gitlab.com/famedly/containers/email/opendkim
 opendkim_docker_image: instrumentisto/opendkim
 opendkim_docker_ports: []
 opendkim_docker_labels: {}
 opendkim_conf_path: "/etc/opendkim/opendkim.conf"
 opendkim_cert_path: "/etc/opendkim"
-opendkim_cert_filename: "{{ opendkim_selector_name }}.key.pem"
-opendkim_cert_filepath: "{{ opendkim_cert_path }}/{{ opendkim_cert_filename }}"
-opendkim_selector_name: ratzupaltuff-test #hostname or month/year
+opendkim_cert_filepath: "{{ opendkim_cert_path }}/{{ dkim_cert_filename }}"
 opendkim_sign_addresses: "172.3.0.1/24" #comma separated cidr notation
 opendkim_port: 8891
 opendkim_listening_address: "172.3.0.5"
 opendkim_listening_socket: "inet:{{ opendkim_port }}@{{ opendkim_listening_address }}"
+
+#rspamd
+rspamd_group_name: rspamd
+rspamd_user_name: rspamd
+rspamd_host_base_path: "{{ email_base_path }}/rspamd"
+rspamd_docker_image: registry.gitlab.com/famedly/containers/email/rspamd
+rspamd_docker_name: rspamd
+rspamd_docker_ports: []
+rspamd_docker_labels: {}
+dkim_selector_name: ratzupaltuff-test #hostname or month/year
+dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
