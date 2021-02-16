@@ -59,9 +59,13 @@ opendkim_listening_socket: "inet:{{ opendkim_port }}@{{ opendkim_listening_addre
 rspamd_group_name: rspamd
 rspamd_user_name: rspamd
 rspamd_host_base_path: "{{ email_base_path }}/rspamd"
+rspamd_docker_conf_path: "/etc/rspamd"
+rspamd_docker_static_runtime_data_path: "/var/lib/rspamd" #*.hs, *.hsmp, *.map files in here get recreated every start and do not have to be backed up
 rspamd_docker_image: registry.gitlab.com/famedly/containers/email/rspamd
 rspamd_docker_name: rspamd
 rspamd_docker_ports: []
 rspamd_docker_labels: {}
 dkim_selector_name: ratzupaltuff-test #hostname or month/year
 dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
+rspamd_docker_volumes:
+  - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"

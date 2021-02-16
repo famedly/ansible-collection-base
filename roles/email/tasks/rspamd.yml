@@ -12,29 +12,57 @@
 
   - name: create directory for rspamd config and dkim-certs
     file:
-      path: '{{ rspamd_base_path }}/{{ item }}'
+      path: '{{ rspamd_host_base_path }}/{{ item }}'
       state: directory
-      owner: root
+      #owner: root
       owner: "{{ rspamd_user.name }}"
       group: "{{ rspamd_user.group }}"
       mode: '0700'
     with_items:
       - 
       - certs
+        #- general_config
+        #- module_config
+        #- score_config
       - config
-      - certs/rspamd
+      - static_runtime_data
 
-  - name: configure rspamd
+#  - name: create merge config for rspamd
+#    template:
+#      src: "rspamd/{{ item }}"
+#      dest: "{{ rspamd_host_base_path }}/merge_config/{{ item }}"
+#      #owner: root
+#      owner: "{{ rspamd_user.name }}"
+#      group: "{{ rspamd_user.group }}"
+#      mode: '0700'
+#    with_items:
+#      - logging.inc
+
+  - name: Ensure directory structure for config exists
+    file:
+      path: '{{ rspamd_host_base_path }}/config/{{ item.path }}'
+      state: directory
+    with_filetree: '../templates/rspamd/configdir'
+    when: item.state == 'directory'
+
+  - name: Ensure config files are populated from templates
     template:
-      src: "rspamd/rspamd.conf"
-      dest: "{{ rspamd_base_path }}/config/rspamd.conf"
-      owner: root
-      owner: "{{ rspamd_user.name }}"
-      group: "{{ rspamd_user.group }}"
-      mode: '0700'
+      src: 'rspamd/configdir/{{ item.path }}'
+      dest: '{{ rspamd_host_base_path }}/config/{{ item.path }}'
+    with_filetree: '../templates/rspamd/configdir'
+    when: item.state == 'file'
 
       #- name: rspamd cert-gen
       #import_tasks: rspamd_cert_gen.yml #TODO
+
+  - name: prepare docker mount volume list
+    set_fact:
+      rspamd_docker_volumes: "{{ rspamd_docker_volumes + [ rspamd_host_base_path + '/config/' + item.path + ':' + rspamd_docker_conf_path + '/' + item.path + ':ro' ] }}"
+    with_filetree: '../templates/rspamd/configdir'
+    when: item.state == 'file'
+    no_log: True
+
+#  - debug: msg={{ rspamd_docker_volumes }}
 
   - name: install rspamd container
     docker_container:
@@ -45,10 +73,9 @@
       labels: "{{ rspamd_docker_labels }}"
       restart_policy: unless-stopped
       recreate: true
-      #user: "{{ rspamd_user.uid }}" #:{{ rspamd_user.group }}"
+      user: "{{ rspamd_user.uid }}:{{ rspamd_user.group }}"
       pull: true
-      command: "-x {{ rspamd_conf_path }}"
+      #command: "--insecure"
       #command: "/usr/sbin/rspamd -f -l -p {{ rspamd_listening_socket }} -d {{ email_domain }} -k {{ rspamd_cert_path }}/{{ rspamd_cert_filename }} -s {{ rspamd_selector_name }}"
-      volumes:
-        - "{{ rspamd_base_path }}/certs/{{ rspamd_cert_filename }}:{{ rspamd_cert_filepath }}"
-        - "{{ rspamd_base_path }}/config/rspamd.conf:{{ rspamd_conf_path }}"
+      volumes: "{{ rspamd_docker_volumes }}"
+              # - "{{ rspamd_base_path }}/certs/{{ rspamd_cert_filename }}:{{ rspamd_cert_filepath }}"
