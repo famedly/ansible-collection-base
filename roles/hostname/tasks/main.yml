@@ -24,4 +24,5 @@
 - name: Set hostname via hostnamectl to avoid a reboot
   command:
     cmd: "hostnamectl set-hostname {{ hostname_fqdn }}"
+  when: hostname_fqdn != "{{ ansible_fqdn }}."
 
