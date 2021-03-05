@@ -48,3 +48,6 @@
     labels: "{{ redis_docker_labels_complete }}"
     entrypoint: "redis-server"
     command: [ "{{ redis_docker_configpath }}" ]
+    healthcheck:
+      test: >-
+        redis-cli -a {{ redis_secret }} PING || exit 1
