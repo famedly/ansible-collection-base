@@ -1,0 +1,7 @@
+---
+
+- name: restart-redis
+  docker_container:
+    name: "{{ redis_docker_container_name }}"
+    state: started
+    restart: yes

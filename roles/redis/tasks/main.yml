@@ -34,13 +34,13 @@
     dest: "{{ redis_config_file }}"
     owner: "{{ redis_user }}"
     group: "{{ redis_user }}"
+  notify: restart-redis
 
 - name: Setup redis docker container
   docker_container:
     image: "{{ redis_docker_image }}"
     name: "{{ redis_docker_container_name }}"
     restart_policy: unless-stopped
-    recreate: true
     pull: true
     user: "{{ redis_user_res.uid }}:{{ redis_user_res.group }}"
     ports: "{{ redis_docker_ports }}"
@@ -51,3 +51,6 @@
     healthcheck:
       test: >-
         redis-cli -a {{ redis_secret }} PING || exit 1
+
+- name: Ensure redis is restarted if config changed
+  meta: flush_handlers
