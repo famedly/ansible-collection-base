@@ -4,6 +4,12 @@ postfix_user_name: postfix #TODO do not run as root
 opendkim_user_name: opendkim
 opendkim_group_name: opendkim
 email_group_name: email
+email_network_prefix: "172.3.0"
+email_network_gateway: "{{ email_network_prefix }}.1"
+email_network: "{{ email_network_prefix }}.0/24"
+#email_local_send_network: "127.0.0.1"
+email_local_send_network: "172.3.0.1"
+
 
 email_domain: ratzupaltuff-test.famedly.de
 email_base_path: "/opt/email"
@@ -25,8 +31,7 @@ postfix_smtpd_milters_ip: "{{ email_network_prefix }}.4" #todo automate that #cu
 postfix_docker_labels: {} #override e.g. for traefik
 
 postfix_hostname: "mail.{{ email_domain }}"
-postfix_sender_networks: "172.3.0.0/24" #, 127.0.0.0/24" #comma separated
-email_network_prefix: "172.3.0"
+postfix_sender_networks: "{{ email_network }}" #, 127.0.0.0/24" #comma separated
 
 #dovecot
 dovecot_user_name: vmail
@@ -50,9 +55,9 @@ opendkim_docker_labels: {}
 opendkim_conf_path: "/etc/opendkim/opendkim.conf"
 opendkim_cert_path: "/etc/opendkim"
 opendkim_cert_filepath: "{{ opendkim_cert_path }}/{{ dkim_cert_filename }}"
-opendkim_sign_addresses: "172.3.0.1/24" #comma separated cidr notation
+opendkim_sign_addresses: "{{ email_network_prefix }}.1/24" #comma separated cidr notation
 opendkim_port: 8891
-opendkim_listening_address: "172.3.0.5"
+opendkim_listening_address: "{{ email_network_prefix }}.5"
 opendkim_listening_socket: "inet:{{ opendkim_port }}@{{ opendkim_listening_address }}"
 
 #rspamd
@@ -67,5 +72,8 @@ rspamd_docker_ports: []
 rspamd_docker_labels: {}
 dkim_selector_name: ratzupaltuff-test #hostname or month/year
 dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
+#rspamd_listening_address: "{{ email_network_prefix }}.1" #v4 for any v4 interface
+rspamd_listening_address: "172.3.0.5" #v4 for any v4 interface
+rspamd_milter_listening_port: "11332"
 rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"

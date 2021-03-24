@@ -7,3 +7,5 @@
       - "MAIL FROM: test@{{ email_domain }}"
       - "RCPT TO: v.wilke@famedly.de"
       - "DATA" #not tested this file has to be reviewed!
+      - "."
+      - "QUIT"

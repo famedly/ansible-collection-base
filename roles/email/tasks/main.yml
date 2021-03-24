@@ -12,9 +12,9 @@
       group: "{{ email_group_name }}"
     become: true
 
-#  - name: install postfix
-#    import_tasks: postfix.yml
-#    become: true
+  - name: install postfix
+    import_tasks: postfix.yml
+    become: true
     
   - name: install rspamd
     import_tasks: rspamd.yml

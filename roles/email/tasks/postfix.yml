@@ -37,6 +37,7 @@
       restart_policy: unless-stopped
       recreate: true
       pull: true
+      hostname: "{{ postfix_docker_name }}"
       volumes:
         - "{{ postfix_base_path }}/spool:{{ postfix_container_spool_path }}"
         - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"

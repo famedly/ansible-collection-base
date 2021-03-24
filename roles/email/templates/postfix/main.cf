@@ -610,7 +610,8 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-debug_peer_list = 127.0.0.1, 172.3.0.1 #TODO
+debug_peer_list = 127.0.0.1, 172.3.0.1 
+#TODO
 #debug_peer_list = some.domain
 
 # The debugger_command specifies the external command that is executed
@@ -693,6 +694,10 @@ notify_classes = resource, software, bounce, 2bounce, delay, policy, protocol
 smtputf8_enable = no
 #Increase message size limit from 10MB(10240000) to 100MiB
 message_size_limit = 104857600
+milter_protocol = 6
 
-smtpd_milters = inet:{{ opendkim_listening_address }}:8891
-non_smtpd_milters = inet:{{ opendkim_listening_address }}:8891
+smtpd_milters = inet:{{ rspamd_listening_address }}:{{ rspamd_milter_listening_port }}
+non_smtpd_milters = inet:{{ rspamd_listening_address }}:{{ rspamd_milter_listening_port }}
+
+# skip mail without checks if something goes wrong
+milter_default_action = accept

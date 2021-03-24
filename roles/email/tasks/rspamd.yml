@@ -42,6 +42,9 @@
     file:
       path: '{{ rspamd_host_base_path }}/config/{{ item.path }}'
       state: directory
+      owner: "{{ rspamd_user.name }}"
+      group: "{{ rspamd_user.group }}"
+      mode: '0700'
     with_filetree: '../templates/rspamd/configdir'
     when: item.state == 'directory'
 
@@ -49,6 +52,9 @@
     template:
       src: 'rspamd/configdir/{{ item.path }}'
       dest: '{{ rspamd_host_base_path }}/config/{{ item.path }}'
+      owner: "{{ rspamd_user.name }}"
+      group: "{{ rspamd_user.group }}"
+      mode: '0700'
     with_filetree: '../templates/rspamd/configdir'
     when: item.state == 'file'
 
@@ -73,9 +79,8 @@
       labels: "{{ rspamd_docker_labels }}"
       restart_policy: unless-stopped
       recreate: true
-      user: "{{ rspamd_user.uid }}:{{ rspamd_user.group }}"
+      hostname: "{{ rspamd_docker_name }}"
+      user: "{{ rspamd_user.uid }}:{{ rspamd_user.group }}" #not needed because rspamd forks processes into users
       pull: true
-      #command: "--insecure"
-      #command: "/usr/sbin/rspamd -f -l -p {{ rspamd_listening_socket }} -d {{ email_domain }} -k {{ rspamd_cert_path }}/{{ rspamd_cert_filename }} -s {{ rspamd_selector_name }}"
+      #command: "-u {{ rspamd_user.name }} -g {{rspamd_group_name }}"
       volumes: "{{ rspamd_docker_volumes }}"
-              # - "{{ rspamd_base_path }}/certs/{{ rspamd_cert_filename }}:{{ rspamd_cert_filepath }}"
