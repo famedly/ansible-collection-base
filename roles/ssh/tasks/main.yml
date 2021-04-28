@@ -110,3 +110,9 @@
     insertafter: *cipher_after
   notify: reload sshd
 
+- name: Set LogLevel to {{ ssh_loglevel }}
+  lineinfile:
+    <<: *sshd_config_args
+    regexp: '^#?LogLevel'
+    line: "LogLevel {{ ssh_loglevel }}"
+  notify: reload sshd
