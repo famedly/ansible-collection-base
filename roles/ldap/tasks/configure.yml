@@ -1,0 +1,87 @@
+---
+
+# Configures the ACL via root on LDAP-IPC-Socket
+- name: Configure ACL
+  become: true
+  ldap_attr:
+    dn: "{{ ldap_config_db }}"
+    name: olcAccess
+    values: "{{ ldap_acls }}"
+    state: exact
+    server_uri: "ldapi://{{ (ldap_sock_path + '/slapd.sock') | urlencode | replace('/', '%2F') }}"
+  retries: 3
+  delay: 3
+  register: acl_res
+  until: acl_res is succeeded
+  tags:
+    - ldap-sync
+    - ldap-sync-acl
+
+- name: Ensure rootDN credentials up-to-date
+  become: true
+  ldap_attr:
+    dn: "{{ ldap_config_db }}"
+    name: "{{ item.key }}"
+    values: "{{ item.value }}"
+    state: exact
+    server_uri: "ldapi://{{ (ldap_sock_path + '/slapd.sock') | urlencode | replace('/', '%2F') }}"
+  no_log: "{{ item.log is defined and item.log == false }}"
+  loop:
+    - key: olcRootDN
+      value: "{{ ldap_rootdn }}"
+    - key: olcRootPW
+      value: "{{ ldap_root_pass }}"
+      log: false
+  tags:
+    - ldap-sync
+
+# Root node can be created with normal bind via LDAP
+- name: Create root node
+  become: true
+  ldap_entry:
+    dn: "{{ ldap_dn }}"
+    objectClass:
+      - top
+      - dcObject
+      - organization
+    attributes:
+      dc: "{{ ldap_domain|regex_replace('\\..+', '') }}"
+      o: "{{ ldap_org }}"
+    bind_dn: "{{ ldap_rootdn }}"
+    bind_pw: "{{ ldap_root_pass }}"
+    server_uri: "{{ ldap_server_uri }}"
+  tags:
+    - ldap-sync
+
+- name: Ensure root node is correctly configured
+  become: true
+  ldap_attr:
+    dn: "{{ ldap_dn }}"
+    name: "{{ item.key }}"
+    values: "{{ item.value }}"
+    state: exact
+    bind_dn: "{{ ldap_rootdn }}"
+    bind_pw: "{{ ldap_root_pass }}"
+    server_uri: "{{ ldap_server_uri }}"
+  no_log: "{{ item.log is defined and item.log == false }}"
+  loop:
+    - key: o
+      value: "{{ ldap_org }}"
+    - key: dc
+      value: "{{ ldap_domain|regex_replace('\\..+', '') }}"
+  tags:
+    - ldap-sync
+
+- name: Create organizational units
+  ldap_entry:
+    dn: "ou={{ ou_name }},{{ ldap_dn }}"
+    objectClass: organizationalUnit
+    state: present
+    bind_dn: "{{ ldap_rootdn }}"
+    bind_pw: "{{ ldap_root_pass }}"
+    server_uri: "{{ ldap_server_uri }}"
+  loop: "{{ ldap_org_units }}"
+  loop_control:
+    loop_var: ou_name
+  tags:
+    - ldap-sync

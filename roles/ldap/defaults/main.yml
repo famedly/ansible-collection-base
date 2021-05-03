@@ -1,0 +1,58 @@
+---
+ldap_base_path: /opt/ldap
+ldap_sock_path: "{{ ldap_base_path }}/sock"
+ldap_data_path: "{{ ldap_base_path }}/data"
+ldap_config_path: "{{ ldap_base_path }}/config"
+
+ldap_container_version: "v2.4.50-r0"
+ldap_container_image: "registry.gitlab.com/famedly/containers/openldap:{{ ldap_container_version }}"
+ldap_container_name: ldap
+ldap_container_ports: "389:389"
+ldap_server_uri: "ldap:///"
+ldap_container_labels: {}
+ldap_container_networks: []
+ldap_container_etc_hosts: {}
+ldap_container_pull: true
+ldap_container_recreate: false
+
+ldap_container_fd_soft_limit: "8192"
+ldap_container_fd_hard_limit: "8192"
+ldap_container_ulimits: ["nofile:{{ ldap_container_fd_soft_limit }}:{{ ldap_container_fd_hard_limit }}"]
+ldap_container_memory_reservation: "256M"
+ldap_container_memory: "512M"
+ldap_init_container_additional_volumes:
+  - "{{ ldap_base_path }}/slapd.ldif:{{ ldap_container_slapd_file }}:z"
+
+# phpLDAPadmin config
+ldap_management_container_enabled: False
+ldap_management_container_name: "ldap_management"
+ldap_management_version: "0.9.0"
+ldap_management_container_image: "docker.io/osixia/phpldapadmin:{{ ldap_management_version }}"
+ldap_management_container_ports: []
+ldap_management_container_env: {}
+ldap_management_container_labels: {}
+ldap_management_container_pull: true
+ldap_management_container_recreate: false
+
+# LDAP specific config
+ldap_domain: ~
+ldap_dn: "dc={{ ldap_domain | regex_replace('\\.', ',dc=') }}"
+ldap_org: ~
+ldap_root_user: "admin"
+ldap_root_pass: ~
+ldap_root_pass_hash: ~
+ldap_rootdn: "cn={{ ldap_root_user }},{{ ldap_dn }}"
+ldap_config_db: "olcDatabase={1}mdb,cn=config"
+
+# Expects {name: "costumSchema.ldif", content: $fileContent}
+ldap_additional_schemas: []
+ldap_additional_indices: []
+ldap_org_units:
+  - groups
+  - users
+
+# Default ACLs
+ldap_acls:
+  - "{0} to dn.subtree=\"{{ ldap_dn }}\" by dn.exact=\"{{ ldap_rootdn }}\" manage by * break"
+  - "{1} to attrs=userPassword by anonymous auth by self =w by * none"
+  - "{2} to * by users read"

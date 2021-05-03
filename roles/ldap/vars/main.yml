@@ -1,0 +1,30 @@
+---
+
+ldap_container_socket_dir: "/var/run/sockets"
+ldap_container_conf_dir: "/etc/openldap/slapd.d"
+ldap_container_data_dir: "/var/lib/openldap/openldap-data"
+ldap_container_slapd_file: "/etc/openldap/slapd.ldif"
+ldap_container_schema_path: "/etc/openldap/schema"
+
+ldap_base_schemas_to_load:
+  - name: cosine.ldif
+  - name: inetorgperson.ldif
+ldap_schemas_to_load: >-
+  {{ ldap_base_schemas_to_load }}
+  + {{ ldap_additional_schemas }}
+
+
+ldap_container_volumes:
+  - "{{ ldap_config_path }}:{{ ldap_container_conf_dir }}:z"
+  - "{{ ldap_data_path }}:{{ ldap_container_data_dir}}:z"
+  - "{{ ldap_sock_path }}:{{ ldap_container_socket_dir }}:z"
+
+ldap_container_labels_base:
+  version: "{{ ldap_container_version }}"
+ldap_container_labels_complete: "{{ ldap_container_labels_base | combine(ldap_container_labels) }}"
+
+
+# phpLDAPadmin container labels
+ldap_management_container_labels_base:
+    version: "{{ ldap_management_version }}"
+ldap_management_container_labels_complete: "{{ ldap_management_container_labels_base | combine(ldap_management_container_labels) }}"

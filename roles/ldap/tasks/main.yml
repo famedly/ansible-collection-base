@@ -1,0 +1,47 @@
+---
+
+- name: Ensure base path exists
+  file:
+    path: "{{ ldap_base_path }}"
+    state: directory
+    mode: 0700
+
+- name: Create volume paths
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0700
+  loop:
+    - "{{ ldap_data_path }}"
+    - "{{ ldap_config_path }}"
+    - "{{ ldap_base_path }}/sock"
+
+- name: Provide intial container configuration
+  include_tasks: initialize.yml
+
+- name: Ensure LDAP container is started
+  docker_container:
+    name: "{{ ldap_container_name }}"
+    image: "{{ ldap_container_image }}"
+    ports: "{{ ldap_container_ports }}"
+    volumes: "{{ ldap_container_volumes }}"
+    labels: "{{ ldap_container_labels_complete }}"
+    networks: "{{ ldap_container_networks }}"
+    etc_hosts: "{{ ldap_container_etc_hosts }}"
+    ulimits: "{{ ldap_container_ulimits }}"
+    memory_reservation: "{{ ldap_container_memory_reservation }}"
+    memory: "{{ ldap_container_memory }}"
+    restart_policy: unless-stopped
+    recreate: "{{ ldap_container_recreate }}"
+    pull: "{{ ldap_container_pull }}"
+    healthcheck:
+      test: >-
+        [[ $(netstat -plnte | grep slapd | wc -l) -ge 1 ]]
+        && [[ $(ps aux | grep slapd | wc -l) -ge 1 ]]
+        || exit 1
+
+- name: Configure LDAP DIT
+  import_tasks: configure.yml
+
+- name: Set up phpLDAPAdmin container
+  import_tasks: ldap-web-ui.yml
