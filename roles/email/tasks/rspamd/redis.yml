@@ -1,0 +1,27 @@
+---
+  - name: Add redis-rspamd user
+    ansible.builtin.user:
+      name: "redis-rspamd"
+      group: "{{ rspamd_group_name }}"
+    register: redis_rspamd_user
+
+  - name: make dir for rspamd-redis
+    file:
+      path: '{{ rspamd_host_base_path }}/redis-data'
+      state: directory
+      owner: "{{ redis_rspamd_user.name }}"
+      group: "{{ rspamd_user.group }}"
+      mode: '0700'
+
+  - name: install rspamd-redis
+    docker_container:
+      image: redis:6.2.1-alpine
+      name: rspamd-redis
+      state: started
+      pull: true
+      recreate: true
+      user: "{{ redis_rspamd_user.uid }}:{{ rspamd_user.group }}"
+      hostname: "rspamd-redis"
+      #command: redis-server --appendonly yes
+      volumes:
+        - "/opt/email/rspamd/redis-data:/data"

@@ -17,7 +17,7 @@
     become: true
     
   - name: install rspamd
-    import_tasks: rspamd.yml
+    import_tasks: rspamd/rspamd.yml
     become: true
 
     #- name: install opendkim
@@ -36,6 +36,7 @@
         - "{{ dovecot_docker_name }}"
         - "{{ opendkim_docker_name }}"
         - "{{ rspamd_docker_name }}"
+        - "rspamd-redis"
       ipam_config:
         - subnet: "{{ email_network_prefix }}.0/24"
           #aux_addresses: "{'{{ postfix_docker_name }}': '{{ email_network_prefix }}.2', '{{ dovecot_docker_name }}': '{{ email_network_prefix }}.3'}"

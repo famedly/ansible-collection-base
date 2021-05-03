@@ -8,7 +8,7 @@ email_network_prefix: "172.3.0"
 email_network_gateway: "{{ email_network_prefix }}.1"
 email_network: "{{ email_network_prefix }}.0/24"
 #email_local_send_network: "127.0.0.1"
-email_local_send_network: "172.3.0.1"
+email_local_send_network: "172.3.0.1/24"
 
 
 email_domain: ratzupaltuff-test.famedly.de
@@ -67,6 +67,7 @@ rspamd_host_base_path: "{{ email_base_path }}/rspamd"
 rspamd_docker_conf_path: "/etc/rspamd"
 rspamd_docker_static_runtime_data_path: "/var/lib/rspamd" #*.hs, *.hsmp, *.map files in here get recreated every start and do not have to be backed up
 rspamd_docker_image: registry.gitlab.com/famedly/containers/email/rspamd
+#rspamd_docker_image: mailu/rspamd:1.7
 rspamd_docker_name: rspamd
 rspamd_docker_ports: []
 rspamd_docker_labels: {}
@@ -77,3 +78,5 @@ rspamd_listening_address: "172.3.0.5" #v4 for any v4 interface
 rspamd_milter_listening_port: "11332"
 rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"
+  - "{{ rspamd_host_base_path }}/control_socket/:/run/rspamd:rw"
+  - "{{ rspamd_host_base_path }}/dkim/://var/lib/rspamd/dkim/:ro"

@@ -20,12 +20,14 @@
       mode: '0700'
     with_items:
       - 
-      - certs
+        #- certs
         #- general_config
         #- module_config
         #- score_config
       - config
       - static_runtime_data
+      - control_socket
+      - dkim
 
 #  - name: create merge config for rspamd
 #    template:
@@ -60,6 +62,8 @@
 
       #- name: rspamd cert-gen
       #import_tasks: rspamd_cert_gen.yml #TODO
+      #  - name: redis-rspamd
+      #import_tasks: rspamd/redis.yml
 
   - name: prepare docker mount volume list
     set_fact:
@@ -69,6 +73,10 @@
     no_log: True
 
 #  - debug: msg={{ rspamd_docker_volumes }}
+
+    #  - name: wait for redis to be available
+    #ansible.builtin.wait_for:
+    #  timeout: 30 #TODO solve differently
 
   - name: install rspamd container
     docker_container:
