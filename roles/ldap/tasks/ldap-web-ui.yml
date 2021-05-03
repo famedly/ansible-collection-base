@@ -1,0 +1,26 @@
+---
+
+- name: Ensure LDAP management container is started
+  docker_container:
+    name: "{{ ldap_management_container_name }}"
+    image: "{{ ldap_management_container_image }}"
+    ports: "{{ ldap_management_container_ports }}"
+    labels: "{{ ldap_management_container_labels_complete }}"
+    env: "{{ ldap_management_container_env }}"
+    links:
+      - "{{ ldap_container_name }}:ldap"
+    restart_policy: unless-stopped
+    recreate: "{{ ldap_management_container_recreate }}"
+    pull: "{{ ldap_management_container_pull }}"
+    healthcheck:
+      test: >-
+        [ $(pgrep -u www-data -c -f /usr/sbin/apache2) -gt 0 ]
+        || exit 1
+
+  when: ldap_management_container_enabled|bool
+
+- name: Ensure LDAP management container is absent
+  docker_container:
+    name: "{{ ldap_management_container_name }}"
+    state: absent
+  when: not ldap_management_container_enabled|bool

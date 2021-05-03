@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - ldap
+  vars:
+    ldap_domain: 'dep-b.example.org'
+    ldap_org: "Department B of the Example Organization"
+    ldap_root_pass: admin
+    ldap_root_pass_hash: admin
+    ldap_base_path: /tmp/ldap
+  post_tasks:
+    - name: Create dummy users in org
+      ldap_entry:
+        dn: "uid={{ item }},ou=users,{{ ldap_dn }}"
+        objectClass:
+          - inetOrgPerson
+        attributes:
+          uid: "{{ item }}"
+          givenName: "firstname"
+          sn: "surname"
+          cn: "firstname lastname"
+          mail: "{{ item }}@mail.{{ ldap_domain }}"
+          userPassword: "{SSHA}NdjwrLbBHcs9JfWRoz//91CSDRYpmKvx" #password
+        state: present
+        bind_dn: "{{ ldap_rootdn }}"
+        bind_pw: "{{ ldap_root_pass }}"
+        server_uri: "ldap:///"
+      loop:
+        - testUserA
+        - testUserB
+        - testUserC
+        - testManagerA
+        - testManagerB

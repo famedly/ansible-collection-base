@@ -1,0 +1,65 @@
+---
+
+- name: Stat the LDAP OLC config directory
+  stat:
+    path: "{{ ldap_config_path }}/cn=config"
+  register: stat_result
+
+- name: Determine if the container needs to be initialized
+  set_fact:
+    ldap_needs_init: "{{ stat_result.stat.exists|bool == False }}"
+
+- name: (init) Template initial slapd.ldif
+  template:
+    src: slapd.ldif.j2
+    dest: "{{ ldap_base_path }}/slapd.ldif"
+    mode: 0644
+  when: ldap_needs_init|bool
+
+- name: (init) Copy additional schema
+  copy:
+    content: "{{ schema.content }}"
+    dest: "{{ ldap_base_path }}/{{ schema.name }}"
+    mode: 0644
+  when: ldap_needs_init|bool
+  loop: "{{ ldap_additional_schemas }}"
+  loop_control:
+    loop_var: schema
+    label: "{{ schema.name }}"
+
+- name: (init) Map additional schemas into container
+  set_fact:
+    ldap_init_container_additional_volumes: >-
+      {{ ldap_init_container_additional_volumes }}
+      + {{ volume_mount }}
+  vars:
+    schema_file: "{{ ldap_base_path }}/{{ schema.name }}"
+    volume_mount:
+      - "{{ schema_file }}:{{ ldap_container_schema_path }}/{{ schema.name }}:ro"
+  when: ldap_needs_init|bool
+  loop: "{{ ldap_additional_schemas }}"
+  loop_control:
+    loop_var: schema
+    label: "{{ schema.name }}"
+
+# The detach and cleanup options force the task to
+# stall until slapadd is done. Else, an unconfigured
+# container is started which will not work
+- name: (init) Run init script in container
+  docker_container:
+    name: "{{ ldap_container_name }}"
+    image: "{{ ldap_container_image }}"
+    command: "slapadd -v -F {{ ldap_container_conf_dir }} -n 0 -l {{ ldap_container_slapd_file }}"
+    cleanup: yes
+    detach: no
+    container_default_behavior: no_defaults
+    pull: "{{ ldap_container_pull }}"
+    volumes: "{{ ldap_container_volumes + ldap_init_container_additional_volumes }}"
+  when: ldap_needs_init|bool
+
+- name: (init) Remove files needed for bootstrapping
+  file:
+    path: "{{ ldap_base_path }}/{{ item.name }}"
+    state: absent
+  when: ldap_needs_init|bool
+  loop: "{{ [ { 'name': 'slapd.ldif'} ] + ldap_additional_schemas }}"
