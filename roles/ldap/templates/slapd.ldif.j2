@@ -111,5 +111,5 @@ olcDbDirectory:	{{ ldap_container_data_dir }}
 # Indices to maintain
 olcDbIndex: objectClass eq
 {% for index in ldap_additional_indices %}
-olcDbIndex {{ index }}
+olcDbIndex: {{ index }}
 {% endfor %}
