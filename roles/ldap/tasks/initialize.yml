@@ -21,7 +21,7 @@
     content: "{{ schema.content }}"
     dest: "{{ ldap_base_path }}/{{ schema.name }}"
     mode: 0644
-  when: ldap_needs_init|bool
+  when: ldap_needs_init|bool and schema.content is defined
   loop: "{{ ldap_additional_schemas }}"
   loop_control:
     loop_var: schema
@@ -36,7 +36,7 @@
     schema_file: "{{ ldap_base_path }}/{{ schema.name }}"
     volume_mount:
       - "{{ schema_file }}:{{ ldap_container_schema_path }}/{{ schema.name }}:ro"
-  when: ldap_needs_init|bool
+  when: ldap_needs_init|bool and schema.content is defined
   loop: "{{ ldap_additional_schemas }}"
   loop_control:
     loop_var: schema
