@@ -694,6 +694,7 @@ notify_classes = resource, software, bounce, 2bounce, delay, policy, protocol
 smtputf8_enable = no
 #Increase message size limit from 10MB(10240000) to 100MiB
 message_size_limit = 104857600
+
 milter_protocol = 6
 
 smtpd_milters = inet:{{ rspamd_listening_address }}:{{ rspamd_milter_listening_port }}
@@ -703,3 +704,4 @@ non_smtpd_milters = inet:{{ rspamd_listening_address }}:{{ rspamd_milter_listeni
 milter_default_action = accept
 #setting defines several variables that rspamd expects for better spam detection
 #milter_mail_macros="i {mail_addr} {client_addr} {client_name} {auth_authen}"
+milter_mail_macros =  i {mail_addr} {client_addr} {client_name} {auth_authen}

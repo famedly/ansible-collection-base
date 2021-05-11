@@ -1,19 +1,28 @@
 ---
-  - name: create directory for postfix config and database
-    file:
-      path: '{{ postfix_base_path }}'
-      state: directory
-    become: true
+#  - name: create directory for postfix config and database
+#    file:
+#      path: '{{ postfix_base_path }}'
+#      state: directory
+#    become: true
 
   - name: create directory for postfix config and database and dkim
     file:
       path: '{{ postfix_base_path }}/{{ item }}'
       state: directory
+      owner: root
+      group: root
     become: true
     with_items: 
+      -
       - spool #emails
       - config
+      - postmaster-notifications
 #      - dkim
+
+  - name: create directory for postfix config and database
+    file:
+      path: '{{ postfix_base_path }}/postmaster-notifications/root.txt'
+    become: true
 
   - name: configure postfix
     template:
@@ -38,10 +47,26 @@
       recreate: true
       pull: true
       hostname: "{{ postfix_docker_name }}"
+      #      command: "newaliases && /usr/sbin/postfix start-fg"
       volumes:
         - "{{ postfix_base_path }}/spool:{{ postfix_container_spool_path }}"
+        - "{{ postfix_base_path }}/postmaster-notifications:/opt/postfix/postmaster-notifications:rw"
         - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"
           # - "{{ postfix_base_path }}/config/master.cf:{{ postfix_container_config_path }}/master.cf" #currently default config
-        - "{{ postfix_base_path }}/config/aliases:{{ postfix_container_config_path }}/aliases" #where to send sending problems to
+        - "{{ postfix_base_path }}/config/aliases:/etc/aliases:ro" #where to send sending problems to
 #- "{{ postfix_base_path }}/dkim:{{ postfix_container_dkim_path }}"
+    become: true
+
+#  - name: add postfix container to inventory
+#    add_host:
+#      name: "{{ postfix_docker_name }}"
+#      ansible_connection: docker
+#    changed_when: false
+#
+#  - name: search for new aliases
+#    delegate_to: "{{ postfix_docker_name }}"
+#    raw: newaliases
+#    become: true
+  - name: search for new aliases
+    command: docker exec -i --user=root postfix /bin/sh -c 'newaliases'
     become: true

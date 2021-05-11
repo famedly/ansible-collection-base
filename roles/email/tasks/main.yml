@@ -36,7 +36,7 @@
         - "{{ dovecot_docker_name }}"
         - "{{ opendkim_docker_name }}"
         - "{{ rspamd_docker_name }}"
-        - "rspamd-redis"
+        - "rspamd_redis"
       ipam_config:
         - subnet: "{{ email_network_prefix }}.0/24"
           #aux_addresses: "{'{{ postfix_docker_name }}': '{{ email_network_prefix }}.2', '{{ dovecot_docker_name }}': '{{ email_network_prefix }}.3'}"

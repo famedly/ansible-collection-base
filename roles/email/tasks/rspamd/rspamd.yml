@@ -1,4 +1,7 @@
 ---
+  - name: redis-rspamd
+    import_tasks: rspamd/redis.yml
+
   - name: Add rspamd group
     ansible.builtin.group:
       name: "{{ rspamd_group_name }}"
@@ -62,8 +65,6 @@
 
       #- name: rspamd cert-gen
       #import_tasks: rspamd_cert_gen.yml #TODO
-      #  - name: redis-rspamd
-      #import_tasks: rspamd/redis.yml
 
   - name: prepare docker mount volume list
     set_fact:
