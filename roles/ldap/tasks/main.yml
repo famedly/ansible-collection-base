@@ -5,6 +5,7 @@
     path: "{{ ldap_base_path }}"
     state: directory
     mode: 0700
+  tags: [ 'prepare', 'prepare-ldap' ]
 
 - name: Create volume paths
   file:
@@ -15,9 +16,18 @@
     - "{{ ldap_data_path }}"
     - "{{ ldap_config_path }}"
     - "{{ ldap_base_path }}/sock"
+  tags: [ 'prepare', 'prepare-ldap' ]
 
 - name: Provide intial container configuration
-  include_tasks: initialize.yml
+  import_tasks: initialize.yml
+
+- name: Ensure LDAP container image is pulled
+  docker_image:
+    name: "{{ ldap_container_image }}"
+    force_source: "{{ ldap_container_pull }}"
+    source: pull
+    state: present
+  tags: [ 'prepare', 'prepare-ldap' ]
 
 - name: Ensure LDAP container is started
   docker_container:
@@ -31,14 +41,15 @@
     ulimits: "{{ ldap_container_ulimits }}"
     memory_reservation: "{{ ldap_container_memory_reservation }}"
     memory: "{{ ldap_container_memory }}"
-    restart_policy: unless-stopped
     recreate: "{{ ldap_container_recreate }}"
-    pull: "{{ ldap_container_pull }}"
+    restart_policy: unless-stopped
+    state: started
     healthcheck:
       test: >-
         [[ $(netstat -plnte | grep slapd | wc -l) -ge 1 ]]
         && [[ $(ps aux | grep slapd | wc -l) -ge 1 ]]
         || exit 1
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 - name: Configure LDAP DIT
   import_tasks: configure.yml

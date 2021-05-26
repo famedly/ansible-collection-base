@@ -4,10 +4,12 @@
   stat:
     path: "{{ ldap_config_path }}/cn=config"
   register: stat_result
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 - name: Determine if the container needs to be initialized
   set_fact:
     ldap_needs_init: "{{ stat_result.stat.exists|bool == False }}"
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 - name: (init) Template initial slapd.ldif
   template:
@@ -15,6 +17,7 @@
     dest: "{{ ldap_base_path }}/slapd.ldif"
     mode: 0644
   when: ldap_needs_init|bool
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 - name: (init) Copy additional schema
   copy:
@@ -26,6 +29,7 @@
   loop_control:
     loop_var: schema
     label: "{{ schema.name }}"
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 - name: (init) Map additional schemas into container
   set_fact:
@@ -41,6 +45,7 @@
   loop_control:
     loop_var: schema
     label: "{{ schema.name }}"
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 # The detach and cleanup options force the task to
 # stall until slapadd is done. Else, an unconfigured
@@ -56,6 +61,7 @@
     pull: "{{ ldap_container_pull }}"
     volumes: "{{ ldap_container_volumes + ldap_init_container_additional_volumes }}"
   when: ldap_needs_init|bool
+  tags: [ 'deploy', 'deploy-ldap' ]
 
 - name: (init) Remove files needed for bootstrapping
   file:
@@ -63,3 +69,4 @@
     state: absent
   when: ldap_needs_init|bool
   loop: "{{ [ { 'name': 'slapd.ldif'} ] + ldap_additional_schemas }}"
+  tags: [ 'deploy', 'deploy-ldap' ]

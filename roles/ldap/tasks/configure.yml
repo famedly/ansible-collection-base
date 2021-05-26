@@ -13,9 +13,7 @@
   delay: 3
   register: acl_res
   until: acl_res is succeeded
-  tags:
-    - ldap-sync
-    - ldap-sync-acl
+  tags: [ 'deploy', 'deploy-ldap', 'ldap-sync', 'ldap-sync-acl' ]
 
 - name: Ensure rootDN credentials up-to-date
   become: true
@@ -32,8 +30,7 @@
     - key: olcRootPW
       value: "{{ ldap_root_pass }}"
       log: false
-  tags:
-    - ldap-sync
+  tags: [ 'deploy', 'deploy-ldap', 'ldap-sync' ]
 
 # Root node can be created with normal bind via LDAP
 - name: Create root node
@@ -50,8 +47,7 @@
     bind_dn: "{{ ldap_rootdn }}"
     bind_pw: "{{ ldap_root_pass }}"
     server_uri: "{{ ldap_server_uri }}"
-  tags:
-    - ldap-sync
+  tags: [ 'deploy', 'deploy-ldap', 'ldap-sync' ]
 
 - name: Ensure root node is correctly configured
   become: true
@@ -69,8 +65,7 @@
       value: "{{ ldap_org }}"
     - key: dc
       value: "{{ ldap_domain|regex_replace('\\..+', '') }}"
-  tags:
-    - ldap-sync
+  tags: [ 'deploy', 'deploy-ldap', 'ldap-sync' ]
 
 - name: Create organizational units
   ldap_entry:
@@ -83,5 +78,4 @@
   loop: "{{ ldap_org_units }}"
   loop_control:
     loop_var: ou_name
-  tags:
-    - ldap-sync
+  tags: [ 'deploy', 'deploy-ldap', 'ldap-sync' ]

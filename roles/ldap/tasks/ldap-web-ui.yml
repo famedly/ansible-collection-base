@@ -1,4 +1,12 @@
 ---
+- name: Ensure LDAP management container image is pulled
+  docker_image:
+    name: "{{ ldap_management_container_image }}"
+    force_source: "{{ ldap_management_container_pull }}"
+    source: pull
+    state: present
+  when: ldap_management_container_enabled|bool
+  tags: ['prepare', 'prepare-ldap']
 
 - name: Ensure LDAP management container is started
   docker_container:
@@ -18,9 +26,11 @@
         || exit 1
 
   when: ldap_management_container_enabled|bool
+  tags: ['deploy', 'deploy-ldap']
 
 - name: Ensure LDAP management container is absent
   docker_container:
     name: "{{ ldap_management_container_name }}"
     state: absent
   when: not ldap_management_container_enabled|bool
+  tags: ['deploy', 'deploy-ldap']
