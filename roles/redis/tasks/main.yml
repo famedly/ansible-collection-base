@@ -6,6 +6,8 @@
     create_home: no
     state: present
   register: redis_user_res
+  tags: ['prepare', 'prepare-redis',
+         'deploy', 'deploy-redis']
 
 - name: Create redis directory
   file:
@@ -13,6 +15,7 @@
     state: directory
     owner: "{{ redis_user }}"
     group: "{{ redis_user }}"
+  tags: ['prepare', 'prepare-redis']
 
 - name: Create redis directory for data persistance
   file:
@@ -20,6 +23,7 @@
     state: directory
     owner: "{{ redis_user }}"
     group: "{{ redis_user }}"
+  tags: ['prepare', 'prepare-redis']
 
 - name: Create redis config directory
   file:
@@ -27,6 +31,7 @@
     state: directory
     owner: "{{ redis_user }}"
     group: "{{ redis_user }}"
+  tags: ['prepare', 'prepare-redis']
 
 - name: Template redis config file
   template:
@@ -35,6 +40,15 @@
     owner: "{{ redis_user }}"
     group: "{{ redis_user }}"
   notify: restart-redis
+  tags: ['deploy', 'deploy-redis']
+
+- name: Ensure redis container image is present
+  docker_image:
+    name: "{{ redis_docker_image }}"
+    force_source: "{{ redis_docker_image_force_pull|default(False) }}"
+    source: pull
+    state: present
+  tags: ['prepare', 'prepare-redis']
 
 - name: Setup redis docker container
   docker_container:
@@ -42,7 +56,6 @@
     name: "{{ redis_docker_container_name }}"
     hostname: "{{ redis_docker_container_name }}"
     restart_policy: unless-stopped
-    pull: true
     user: "{{ redis_user_res.uid }}:{{ redis_user_res.group }}"
     ports: "{{ redis_docker_ports }}"
     volumes: "{{ redis_docker_volumes }}"
@@ -52,6 +65,7 @@
     healthcheck:
       test: >-
         redis-cli -a {{ redis_secret }} PING || exit 1
+  tags: ['deploy', 'deploy-redis']
 
 - name: Ensure redis is restarted if config changed
   meta: flush_handlers
