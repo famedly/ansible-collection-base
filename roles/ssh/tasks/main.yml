@@ -4,6 +4,7 @@
     path: "{{ ssh_config_file }}"
     state: present
     validate: "sshd -Tf %s"
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Disallow password authentication
   lineinfile:
@@ -11,6 +12,7 @@
     regexp: "^#?PasswordAuthentication"
     line: "PasswordAuthentication no"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Disallow challenge-response authentication
   lineinfile:
@@ -18,6 +20,7 @@
     regexp: "^#?ChallengeResponseAuthentication"
     line: "ChallengeResponseAuthentication no"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Allow pubkey authentication
   lineinfile:
@@ -26,6 +29,7 @@
     line: "PubkeyAuthentication yes"
     firstmatch: yes
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Disallow root login
   lineinfile:
@@ -33,6 +37,7 @@
     regexp: "^#?PermitRootLogin"
     line: "PermitRootLogin no"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Do not allow sessions to idle longer than 5 minutes
   lineinfile:
@@ -40,6 +45,7 @@
     regexp: "^#?ClientAliveInterval"
     line: "ClientAliveInterval 300"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Only allow SSHv2
   lineinfile:
@@ -48,6 +54,7 @@
     line: "Protocol 2"
     insertafter: &cipher_after "^# Ciphers and keying"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Disallow X11-Forwarding
   lineinfile:
@@ -55,6 +62,7 @@
     regexp: "^#?X11Forwarding"
     line: "X11Forwarding no"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Disallow Agent Forwarding
   lineinfile:
@@ -62,6 +70,7 @@
     regexp: "^#?AllowAgentForwarding"
     line: "AllowAgentForwarding no"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Disallow TCP Forwarding
   lineinfile:
@@ -69,6 +78,7 @@
     regexp: "^#?AllowTcpForwarding"
     line: "AllowTcpForwarding no"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Only allow reasonably secure KeyExAlgorithms
   lineinfile:
@@ -77,6 +87,7 @@
     line: "KexAlgorithms {{ ssh_preset.allowed_kexalgos|join(',') }}"
     insertafter: *cipher_after
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Only allow reasonably secure ciphers
   lineinfile:
@@ -85,6 +96,7 @@
     line: "Ciphers {{ ssh_preset.allowed_ciphers|join(',') }}"
     insertafter: *cipher_after
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Only allow reasonably secure MACs
   lineinfile:
@@ -93,6 +105,7 @@
     line: "MACs {{ ssh_preset.allowed_macs|join(',') }}"
     insertafter: *cipher_after
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Only allow reasonably secure hostkey algorithms
   lineinfile:
@@ -101,6 +114,7 @@
     line: "HostKeyAlgorithms {{ ssh_preset.allowed_hostkey_algos|join(',') }}"
     insertafter: *cipher_after
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Only allow reasonably secure publickey algorithms
   lineinfile:
@@ -109,6 +123,7 @@
     line: "PubkeyAcceptedKeyTypes {{ ssh_preset.allowed_pubkey_algos|join(',') }}"
     insertafter: *cipher_after
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
 
 - name: Set LogLevel to {{ ssh_loglevel }}
   lineinfile:
@@ -116,3 +131,4 @@
     regexp: '^#?LogLevel'
     line: "LogLevel {{ ssh_loglevel }}"
   notify: reload sshd
+  tags: ['prepare', 'prepare-sshd']
