@@ -91,7 +91,7 @@ mail_owner = {{ postfix_user_name }}
 # from gethostname(). $myhostname is used as a default value for many
 # other configuration parameters.
 #
-myhostname = {{ postfix_hostname }}
+myhostname = {{ email_hostname }}
 #myhostname = virtual.domain.tld
 
 # The mydomain parameter specifies the local internet domain name.
@@ -176,13 +176,13 @@ myorigin = $mydomain
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
-#mydestination = $myhostname, localhost.$mydomain, localhost
+mydestination = $myhostname, localhost.$mydomain, localhost, mail.$mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
 
 #disable local mail delivery
-mydestination = 
+#mydestination = 
 
 # REJECTING MAIL FOR UNKNOWN LOCAL USERS
 #
@@ -408,6 +408,7 @@ relay_domains =
 #
 #alias_maps = dbm:/etc/aliases
 #alias_maps = hash:/etc/aliases
+alias_maps = lmdb:/etc/aliases
 #alias_maps = hash:/etc/aliases, nis:mail.aliases
 #alias_maps = netinfo:/aliases
 
@@ -419,6 +420,7 @@ relay_domains =
 #alias_database = dbm:/etc/aliases
 #alias_database = dbm:/etc/mail/aliases
 #alias_database = hash:/etc/aliases
+alias_database = lmdb:/etc/aliases
 #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
 
 # ADDRESS EXTENSIONS (e.g., user+foo)
@@ -610,7 +612,7 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-debug_peer_list = 127.0.0.1, 172.3.0.1 
+debug_peer_list = 127.0.0.1, 172.3.0.0/24
 #TODO
 #debug_peer_list = some.domain
 
@@ -694,6 +696,9 @@ notify_classes = resource, software, bounce, 2bounce, delay, policy, protocol
 smtputf8_enable = no
 #Increase message size limit from 10MB(10240000) to 100MiB
 message_size_limit = 104857600
+#has to be larger than message size limit
+#virtual_mailbox_limit = 304857600
+mailbox_size_limit = 304857600
 
 milter_protocol = 6
 

@@ -1,1 +1,2 @@
-ratzupaltuff-test.famedly.de ratzupaltuff-test
+ratzupaltuff-test.famedly.de {{ dkim_selector_name }}
+famedly.de {{ dkim_selector_name }}

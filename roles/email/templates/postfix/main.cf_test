@@ -1,8 +1,0 @@
-myhostname = ratzupaltuff-test.famedly.de
-#myorigin = $mydomain #we probably want to change that to myhostname(default)
-#relayhost = $mydomain
-#inet_interfaces = loopback-only #or:
-mynetworks = 172.17.0.0/16 #only allow sending from docker network
-maillog_file = /dev/stdout #log to stdout to see log in docker
-relay_domains = #do not relay mail from untrusted networks
-mydestination =

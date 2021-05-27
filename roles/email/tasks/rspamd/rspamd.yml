@@ -4,13 +4,13 @@
 
   - name: Add rspamd group
     ansible.builtin.group:
-      name: "{{ rspamd_group_name }}"
+      name: "{{ email_group_name }}"
       state: present
  
   - name: Add rspamd user
     ansible.builtin.user:
       name: "{{ rspamd_user_name }}"
-      group: "{{ rspamd_group_name }}"
+      group: "{{ email_group_name }}"
     register: rspamd_user
 
   - name: create directory for rspamd config and dkim-certs
@@ -82,13 +82,12 @@
   - name: install rspamd container
     docker_container:
       name: "{{ rspamd_docker_name }}"
-      hostname: "{{ rspamd_docker_name }}"
+      hostname: "{{ rspamd_docker_hostname }}"
       image: "{{ rspamd_docker_image }}"
       ports: "{{ rspamd_docker_ports }}"
       labels: "{{ rspamd_docker_labels }}"
       restart_policy: unless-stopped
       recreate: true
-      hostname: "{{ rspamd_docker_name }}"
       user: "{{ rspamd_user.uid }}:{{ rspamd_user.group }}" #not needed because rspamd forks processes into users
       pull: true
       #command: "-u {{ rspamd_user.name }} -g {{rspamd_group_name }}"

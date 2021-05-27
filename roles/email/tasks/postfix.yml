@@ -39,34 +39,22 @@
   - name: install postfix container
     docker_container:
       name: "{{ postfix_docker_name }}"
-      hostname: "{{ postfix_docker_name }}"
+      hostname: "{{ postfix_docker_hostname }}"
       image: "{{ postfix_docker_image }}"
       ports: "{{ postfix_docker_ports }}"
       labels: "{{ postfix_docker_labels }}"
       restart_policy: unless-stopped
       recreate: true
       pull: true
-      hostname: "{{ postfix_docker_name }}"
-      #      command: "newaliases && /usr/sbin/postfix start-fg"
+      #      command: "postalias /etc/aliases && /usr/sbin/postfix start-fg"
       volumes:
         - "{{ postfix_base_path }}/spool:{{ postfix_container_spool_path }}"
         - "{{ postfix_base_path }}/postmaster-notifications:/opt/postfix/postmaster-notifications:rw"
         - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"
           # - "{{ postfix_base_path }}/config/master.cf:{{ postfix_container_config_path }}/master.cf" #currently default config
         - "{{ postfix_base_path }}/config/aliases:/etc/aliases:ro" #where to send sending problems to
-#- "{{ postfix_base_path }}/dkim:{{ postfix_container_dkim_path }}"
     become: true
 
-#  - name: add postfix container to inventory
-#    add_host:
-#      name: "{{ postfix_docker_name }}"
-#      ansible_connection: docker
-#    changed_when: false
-#
-#  - name: search for new aliases
-#    delegate_to: "{{ postfix_docker_name }}"
-#    raw: newaliases
-#    become: true
-  - name: search for new aliases
-    command: docker exec -i --user=root postfix /bin/sh -c 'newaliases'
+  - name: search for new aliases and build fast lookup database
+    command: docker exec -i --user=root postfix /bin/sh -c 'postalias /etc/aliases'
     become: true

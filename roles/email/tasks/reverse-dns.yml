@@ -1,0 +1,6 @@
+---
+  - name: set reverse dns entry
+    import_playbook:
+      name: famedly.local.reverse-dns.yml
+    vars:
+      hetzner_servername: mail.ratzupaltuff-test.famedly.de

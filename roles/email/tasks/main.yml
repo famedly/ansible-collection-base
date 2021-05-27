@@ -15,14 +15,15 @@
   - name: install postfix
     import_tasks: postfix.yml
     become: true
+    #when: false
     
   - name: install rspamd
     import_tasks: rspamd/rspamd.yml
     become: true
 
-    #- name: install opendkim
-    #  import_tasks: opendkim.yml
-    #  become: true
+  - name: set reverse dns records
+    import_tasks: reverse-dns.yml
+    become: true
 
     #- name: install dovecot
     #import_tasks: dovecot.yml
@@ -32,9 +33,8 @@
     docker_network:
       name: email
       connected:
-        - "{{ postfix_docker_name }}"
+              #- "{{ postfix_docker_name }}"
         - "{{ dovecot_docker_name }}"
-        - "{{ opendkim_docker_name }}"
         - "{{ rspamd_docker_name }}"
         - "rspamd_redis"
       ipam_config:

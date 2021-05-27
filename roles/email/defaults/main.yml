@@ -1,36 +1,35 @@
-#postfix
-#user_config:
-postfix_user_name: postfix #TODO do not run as root
-opendkim_user_name: opendkim
-opendkim_group_name: opendkim
+#general vars
+email_domain: ratzupaltuff-test.famedly.de
+email_hostname: "mail.{{ email_domain }}"
+email_base_path: "/opt/email"
 email_group_name: email
 email_network_prefix: "172.3.0"
 email_network_gateway: "{{ email_network_prefix }}.1"
 email_network: "{{ email_network_prefix }}.0/24"
-#email_local_send_network: "127.0.0.1"
 email_local_send_network: "172.3.0.1/24"
 
-
-email_domain: ratzupaltuff-test.famedly.de
-email_base_path: "/opt/email"
-postfix_base_path: "{{ email_base_path }}/postfix"
-postfix_container_spool_path: /var/spool/postfix
-postfix_container_config_path: /etc/postfix
+#postfix
+postfix_user_name: postfix #TODO do not run as root #already used in main.cf mail owner
 postfix_config_files:
   - main.cf
   - master.cf
-postfix_container_dkim_path: /etc/opendkim/keys
+#postfix_container_dkim_path: /etc/opendkim/keys
 postfix_docker_name: postfix
+postfix_docker_hostname: "{{ postfix_docker_name }}"
 postfix_docker_image: registry.gitlab.com/famedly/containers/email/postfix
 postfix_docker_ports: []
-postfix_smtpd_milters: 25 #dkim signed emails are sent there
-postfix_smtpd_milters_ip: "{{ email_network_prefix }}.4" #todo automate that #currently not used
-#  - 25:25
-#  - 587:587
-    #  - 1587:1587 #smtp for dovecot
+        #  - 25:25
+        #  - 587:587
+        #  - 1587:1587 #smtp for dovecot
 postfix_docker_labels: {} #override e.g. for traefik
 
-postfix_hostname: "mail.{{ email_domain }}"
+postfix_base_path: "{{ email_base_path }}/postfix"
+postfix_container_spool_path: /var/spool/postfix
+postfix_container_config_path: /etc/postfix
+
+postfix_smtpd_milters: 25 #dkim signed emails are sent there
+postfix_smtpd_milters_ip: "{{ email_network_prefix }}.4" #todo automate that #currently not used
+
 postfix_sender_networks: "{{ email_network }}" #, 127.0.0.0/24" #comma separated
 
 #dovecot
@@ -45,38 +44,27 @@ dovecot_docker_ports:
 #  - 995:993 #pop3 secure
 dovecot_docker_labels: {}
 
-#opendkim
-opendkim_base_path: "{{ email_base_path }}/opendkim"
-opendkim_docker_name: opendkim
-#opendkim_docker_image: registry.gitlab.com/famedly/containers/email/opendkim
-opendkim_docker_image: instrumentisto/opendkim
-opendkim_docker_ports: []
-opendkim_docker_labels: {}
-opendkim_conf_path: "/etc/opendkim/opendkim.conf"
-opendkim_cert_path: "/etc/opendkim"
-opendkim_cert_filepath: "{{ opendkim_cert_path }}/{{ dkim_cert_filename }}"
-opendkim_sign_addresses: "{{ email_network_prefix }}.1/24" #comma separated cidr notation
-opendkim_port: 8891
-opendkim_listening_address: "{{ email_network_prefix }}.5"
-opendkim_listening_socket: "inet:{{ opendkim_port }}@{{ opendkim_listening_address }}"
-
 #rspamd
-rspamd_group_name: rspamd
+#rspamd_group_name: rspamd
 rspamd_user_name: rspamd
-rspamd_host_base_path: "{{ email_base_path }}/rspamd"
-rspamd_docker_conf_path: "/etc/rspamd"
-rspamd_docker_static_runtime_data_path: "/var/lib/rspamd" #*.hs, *.hsmp, *.map files in here get recreated every start and do not have to be backed up
-rspamd_docker_image: registry.gitlab.com/famedly/containers/email/rspamd
-#rspamd_docker_image: mailu/rspamd:1.7
 rspamd_docker_name: rspamd
+rspamd_docker_hostname: "{{ rspamd_docker_name }}"
+rspamd_docker_image: registry.gitlab.com/famedly/containers/email/rspamd
 rspamd_docker_ports: []
 rspamd_docker_labels: {}
-dkim_selector_name: ratzupaltuff-test #hostname or month/year
-dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
+
 #rspamd_listening_address: "{{ email_network_prefix }}.1" #v4 for any v4 interface
 rspamd_listening_address: "172.3.0.5" #v4 for any v4 interface
 rspamd_milter_listening_port: "11332"
+
+rspamd_host_base_path: "{{ email_base_path }}/rspamd"
+rspamd_docker_conf_path: "/etc/rspamd"
+rspamd_docker_static_runtime_data_path: "/var/lib/rspamd" #*.hs, *.hsmp, *.map files in here get recreated every start and do not have to be backed up
 rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"
   - "{{ rspamd_host_base_path }}/control_socket/:/run/rspamd:rw"
   - "{{ rspamd_host_base_path }}/dkim/://var/lib/rspamd/dkim/:ro"
+
+#DKIM
+dkim_selector_name: dkim #hostname or month/year
+dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
