@@ -40,6 +40,7 @@
   docker_container:
     image: "{{ redis_docker_image }}"
     name: "{{ redis_docker_container_name }}"
+    hostname: "{{ redis_docker_container_name }}"
     restart_policy: unless-stopped
     pull: true
     user: "{{ redis_user_res.uid }}:{{ redis_user_res.group }}"
