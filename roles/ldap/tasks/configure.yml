@@ -3,10 +3,10 @@
 # Configures the ACL via root on LDAP-IPC-Socket
 - name: Configure ACL
   become: true
-  ldap_attr:
+  ldap_attrs:
     dn: "{{ ldap_config_db }}"
-    name: olcAccess
-    values: "{{ ldap_acls }}"
+    attributes:
+      olcAccess: "{{ ldap_acls }}"
     state: exact
     server_uri: "ldapi://{{ (ldap_sock_path + '/slapd.sock') | urlencode | replace('/', '%2F') }}"
   retries: 3
@@ -17,10 +17,9 @@
 
 - name: Ensure rootDN credentials up-to-date
   become: true
-  ldap_attr:
+  ldap_attrs:
     dn: "{{ ldap_config_db }}"
-    name: "{{ item.key }}"
-    values: "{{ item.value }}"
+    attributes: "{{ { item.key: item.value  } }}"
     state: exact
     server_uri: "ldapi://{{ (ldap_sock_path + '/slapd.sock') | urlencode | replace('/', '%2F') }}"
   no_log: "{{ item.log is defined and item.log == false }}"
@@ -51,20 +50,15 @@
 
 - name: Ensure root node is correctly configured
   become: true
-  ldap_attr:
+  ldap_attrs:
     dn: "{{ ldap_dn }}"
-    name: "{{ item.key }}"
-    values: "{{ item.value }}"
+    attributes:
+      o: "{{ ldap_org }}"
+      dc: "{{ ldap_domain|regex_replace('\\..+', '') }}"
     state: exact
     bind_dn: "{{ ldap_rootdn }}"
     bind_pw: "{{ ldap_root_pass }}"
     server_uri: "{{ ldap_server_uri }}"
-  no_log: "{{ item.log is defined and item.log == false }}"
-  loop:
-    - key: o
-      value: "{{ ldap_org }}"
-    - key: dc
-      value: "{{ ldap_domain|regex_replace('\\..+', '') }}"
   tags: [ 'deploy', 'deploy-ldap', 'ldap-sync' ]
 
 - name: Create organizational units
