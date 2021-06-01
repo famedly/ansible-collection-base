@@ -11,17 +11,36 @@
         postgresql_databases: "{{ postgresql_databases_entries | default([]) }}"
         postgresql_users: "{{ postgresql_users_entries | default([]) }}"
         postgresql_hba_entries: "{{ postgresql_hba_entries | default([]) }}"
+    - name: Add postgres configuration per-host databases
+      debug:
+        var: postgres_database_config[item]
+      when: 'item in group_names'
+      loop: "{{ postgres_database_config.keys() }}"
+#        msg: "{{ config.key }} - {{ group_names }}"
+#      when: 'config.key in group_names'
+#      vars:
+#        db: "{{ (config.value | from_yaml) if config.key in group_names else {} }}"
+#      loop: "{{ postgres_database_config | dict2items }}"
 
+#      when: item in postgres_database_config.keys()
+#      loop: "{{ group_names }}"
+#      loop_control:
+#        loop_var: config
+#        label: "{{ db.databases | map(attribute='name') | first }} @ {{ config.key }}"
+
+    - fail:
     - name: Add postgres configuration per-host databases
       set_fact:
-        postgresql_databases: "{{ postgresql_databases + config.value.databases }}"
-        postgresql_users: "{{ postgresql_users + config.value.users }}"
-        postgresql_hba_entries: "{{ postgresql_hba_entries + config.value.hba_entries }}"
+        postgresql_databases: "{{ postgresql_databases + db.databases }}"
+        postgresql_users: "{{ postgresql_users + db.users }}"
+        postgresql_hba_entries: "{{ postgresql_hba_entries + db.hba_entries }}"
       when: 'config.key in group_names'
+      vars:
+        db: "{{ (config.value | from_yaml) if config.key in group_names else {} }}"
       loop: "{{ postgres_database_config | dict2items }}"
       loop_control:
         loop_var: config
-        label: "{{ config.value.databases | map(attribute='name') | first }} @ {{ config.key }}"
+        label: "{{ db.databases | map(attribute='name') | first }} @ {{ config.key }}"
 
   roles:
     - role: postgresql
