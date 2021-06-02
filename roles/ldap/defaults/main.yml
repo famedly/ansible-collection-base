@@ -5,7 +5,7 @@ ldap_data_path: "{{ ldap_base_path }}/data"
 ldap_config_path: "{{ ldap_base_path }}/config"
 
 ldap_container_version: "v2.4.57-r1"
-ldap_container_image: "registry.gitlab.com/famedly/containers/openldap:{{ ldap_container_version }}"
+ldap_container_image: "registry.gitlab.com/famedly/company/devops/containers/openldap:{{ ldap_container_version }}"
 ldap_container_name: ldap
 ldap_container_ports: "389:389"
 ldap_server_uri: "ldap:///"
