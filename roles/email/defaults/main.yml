@@ -16,7 +16,7 @@ postfix_config_files:
 #postfix_container_dkim_path: /etc/opendkim/keys
 postfix_docker_name: postfix
 postfix_docker_hostname: "{{ postfix_docker_name }}"
-postfix_docker_image: registry.gitlab.com/famedly/containers/email/postfix
+postfix_docker_image: registry.gitlab.com/famedly/company/devops/containers/email/postfix
 postfix_docker_ports: []
         #  - 25:25
         #  - 587:587
@@ -36,7 +36,7 @@ postfix_sender_networks: "{{ email_network }}" #, 127.0.0.0/24" #comma separated
 dovecot_user_name: vmail
 dovecot_base_path: "{{ email_base_path }}/dovecot"
 dovecot_docker_name: dovecot
-dovecot_docker_image: registry.gitlab.com/famedly/containers/email/dovecot
+dovecot_docker_image: registry.gitlab.com/famedly/company/devops/containers/email/dovecot
 dovecot_docker_ports: 
 #  - 110:110 #pop3
   - 143:143 #imap
@@ -49,12 +49,13 @@ dovecot_docker_labels: {}
 rspamd_user_name: rspamd
 rspamd_docker_name: rspamd
 rspamd_docker_hostname: "{{ rspamd_docker_name }}"
-rspamd_docker_image: registry.gitlab.com/famedly/containers/email/rspamd
+rspamd_docker_image: registry.gitlab.com/famedly/company/devops/containers/email/rspamd
 rspamd_docker_ports: []
 rspamd_docker_labels: {}
 
 #rspamd_listening_address: "{{ email_network_prefix }}.1" #v4 for any v4 interface
-rspamd_listening_address: "172.3.0.5" #v4 for any v4 interface
+#rspamd_listening_address: "172.3.0.5" #v4 for any v4 interface
+rspamd_listening_address: "rspamd" #v4 for any v4 interface
 rspamd_milter_listening_port: "11332"
 
 rspamd_host_base_path: "{{ email_base_path }}/rspamd"
@@ -66,5 +67,5 @@ rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/dkim/://var/lib/rspamd/dkim/:ro"
 
 #DKIM
-dkim_selector_name: dkim #hostname or month/year
-dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
+dkim_selector_name: ratzupaltuff-test #dkim #hostname or month/year
+#dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"

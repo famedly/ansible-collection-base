@@ -21,9 +21,9 @@
     import_tasks: rspamd/rspamd.yml
     become: true
 
-  - name: set reverse dns records
-    import_tasks: reverse-dns.yml
-    become: true
+    #  - name: set reverse dns records
+    #    import_tasks: reverse-dns.yml
+    #    become: true
 
     #- name: install dovecot
     #import_tasks: dovecot.yml
