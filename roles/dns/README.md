@@ -25,7 +25,7 @@ CNAME entries can be specified in a list of dicts in `dns_cnames`, and each entr
 with the keys `zone` and `names`.
 `zone` is the zone where the CNAMEs should be created, and `names` is an array of dicts describing each CNAME.
 This dict has a mandatory entry called `name`, which is the CNAME itself.
-It is supported to also have a key called `target`, which can be used to point the CNAME to `target`.`zone`,
+It is supported to also have a key called `target`, which can be used to point the CNAME to `target` directly,
 the default is `dns_host_name_short`.`zone`.
 
 ### SRV records
