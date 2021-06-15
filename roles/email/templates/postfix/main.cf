@@ -91,7 +91,8 @@ mail_owner = {{ postfix_user_name }}
 # from gethostname(). $myhostname is used as a default value for many
 # other configuration parameters.
 #
-myhostname = {{ email_hostname }}
+#myhostname = {{ email_hostname }}
+myhostname = {{ email_domain }}
 #myhostname = virtual.domain.tld
 
 # The mydomain parameter specifies the local internet domain name.
@@ -100,6 +101,7 @@ myhostname = {{ email_hostname }}
 # parameters.
 #
 #mydomain = domain.tld
+mydomain = {{ email_domain }}
 
 # SENDING MAIL
 # 
@@ -578,7 +580,8 @@ alias_database = lmdb:/etc/aliases
 #
 #smtpd_banner = $myhostname ESMTP $mail_name
 #only send minimal information to not be marked as spam
-smtpd_banner = $myhostname 
+#smtpd_banner = $mydomain ESMTP
+smtpd_banner = $myhostname ESMTP
 #ESMTP $mail_name (Alpine)
 
 # PARALLEL DELIVERY TO THE SAME DESTINATION

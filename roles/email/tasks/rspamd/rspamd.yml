@@ -1,6 +1,7 @@
 ---
   - name: redis-rspamd
     import_tasks: rspamd/redis.yml
+    when: rspamd_install_redis
 
   - name: Add rspamd group
     ansible.builtin.group:
@@ -92,3 +93,5 @@
       pull: true
       #command: "-u {{ rspamd_user.name }} -g {{rspamd_group_name }}"
       volumes: "{{ rspamd_docker_volumes }}"
+      networks:
+        - name: "{{ email_docker_network_name }}"

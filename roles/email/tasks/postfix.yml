@@ -53,6 +53,8 @@
         - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"
           # - "{{ postfix_base_path }}/config/master.cf:{{ postfix_container_config_path }}/master.cf" #currently default config
         - "{{ postfix_base_path }}/config/aliases:/etc/aliases:ro" #where to send sending problems to
+      networks:
+        - name: "{{ email_docker_network_name }}"
     become: true
 
   - name: search for new aliases and build fast lookup database

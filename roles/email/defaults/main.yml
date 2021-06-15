@@ -2,7 +2,8 @@
 email_domain: ratzupaltuff-test.famedly.de
 email_hostname: "mail.{{ email_domain }}"
 email_base_path: "/opt/email"
-email_group_name: email
+email_group_name: "email"
+email_docker_network_name: "email"
 email_network_prefix: "172.3.0"
 email_network_gateway: "{{ email_network_prefix }}.1"
 email_network: "{{ email_network_prefix }}.0/24"
@@ -65,6 +66,7 @@ rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"
   - "{{ rspamd_host_base_path }}/control_socket/:/run/rspamd:rw"
   - "{{ rspamd_host_base_path }}/dkim/://var/lib/rspamd/dkim/:ro"
+rspamd_install_redis: false
 
 #DKIM
 dkim_selector_name: ratzupaltuff-test #dkim #hostname or month/year

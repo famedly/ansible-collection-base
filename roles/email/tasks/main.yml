@@ -31,9 +31,9 @@
 
   - name: create email docker-network
     docker_network:
-      name: email
+      name: "{{ email_docker_network_name }}"
       connected:
-              #- "{{ postfix_docker_name }}"
+        - "{{ postfix_docker_name }}"
         - "{{ dovecot_docker_name }}"
         - "{{ rspamd_docker_name }}"
         - "rspamd_redis"
@@ -41,3 +41,4 @@
         - subnet: "{{ email_network_prefix }}.0/24"
           #aux_addresses: "{'{{ postfix_docker_name }}': '{{ email_network_prefix }}.2', '{{ dovecot_docker_name }}': '{{ email_network_prefix }}.3'}"
     become: true
+    when: false
