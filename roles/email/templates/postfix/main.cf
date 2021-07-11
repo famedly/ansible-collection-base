@@ -91,8 +91,8 @@ mail_owner = {{ postfix_user_name }}
 # from gethostname(). $myhostname is used as a default value for many
 # other configuration parameters.
 #
-#myhostname = {{ email_hostname }}
-myhostname = {{ email_domain }}
+myhostname = {{ email_hostname }}
+#myhostname = {{ email_domain }}
 #myhostname = virtual.domain.tld
 
 # The mydomain parameter specifies the local internet domain name.
@@ -284,7 +284,8 @@ unknown_local_recipient_reject_code = 550
 #mynetworks = 168.100.189.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks
 #mynetworks = hash:/etc/postfix/network_table
-mynetworks = {{ postfix_sender_networks }}
+mynetworks = {{ email_local_send_network }}
+
 #127.0.0.0/8
 #, 172.17.0.0/16 traefik uses this address too, if used you created an open relay
 
@@ -581,7 +582,7 @@ alias_database = lmdb:/etc/aliases
 #smtpd_banner = $myhostname ESMTP $mail_name
 #only send minimal information to not be marked as spam
 #smtpd_banner = $mydomain ESMTP
-smtpd_banner = $myhostname ESMTP
+smtpd_banner = {{ email_hostname }} ESMTP
 #ESMTP $mail_name (Alpine)
 
 # PARALLEL DELIVERY TO THE SAME DESTINATION
@@ -615,9 +616,8 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-debug_peer_list = 127.0.0.1, 172.3.0.0/24
+debug_peer_list = 127.0.0.1, 172.3.0.0/24, 172.4.0.0/24
 #TODO
-#debug_peer_list = some.domain
 
 # The debugger_command specifies the external command that is executed
 # when a Postfix daemon program is run with the -D option.
@@ -713,3 +713,60 @@ milter_default_action = accept
 #setting defines several variables that rspamd expects for better spam detection
 #milter_mail_macros="i {mail_addr} {client_addr} {client_name} {auth_authen}"
 milter_mail_macros =  i {mail_addr} {client_addr} {client_name} {auth_authen}
+
+smtpd_error_sleep_time = 3s
+smtpd_soft_error_limit = 5
+smtpd_hard_error_limit = 10
+#limit senders that produce errors
+
+smtpd_client_connection_count_limit = 5
+smtpd_client_connection_rate_limit = 20
+#limit how many clients can connect
+
+smtpd_helo_required = yes
+#some spammers send no helo to speed up send times
+disable_vrfy_command = yes
+#stop email harvesting by disabling query command
+unverified_sender_reject_reason = Address verification failed
+#dont send the exact reason why something failed to unverified senders
+
+#smtpd_relay_restrictions = 
+	
+
+#	permit_mynetworks,
+#	reject_unauth_destination,
+#	reject_non_fqdn_recipient,
+#        reject_non_fqdn_sender,
+#        reject_unknown_recipient_domain,
+#        reject_unknown_sender_domain
+#smtpd_recipient_restrictions = 
+
+smtpd_relay_restrictions = 
+    warn_if_reject permit_mynetworks,
+#    permit_sasl_authenticated,
+    reject_unknown_sender_domain,
+    reject_unauth_destination
+
+smtpd_recipient_restrictions =
+    permit_mynetworks,
+    reject_non_fqdn_helo_hostname,
+    reject_non_fqdn_sender,
+    reject_non_fqdn_recipient,
+    reject_unknown_reverse_client_hostname,
+    reject_invalid_helo_hostname,
+    reject_unknown_helo_hostname,
+    reject_unknown_sender_domain,
+    reject_unknown_recipient_domain,
+    #check_recipient_access hash:/etc/postfix/recipient_access,
+    check_helo_access hash:/etc/postfix/helo_checks,
+    #check_sender_access hash:/etc/postfix/sender_access,
+    #reject_rbl_client cbl.abuseat.org,
+    reject_rbl_client zen.spamhaus.org,
+    #zen is the combination of all spamhaus blacklists
+    #reject_rbl_client sbl.spamhaus.org,
+    #reject_rbl_client pbl.spamhaus.org,
+    permit
+
+smtpd_data_restrictions =
+    reject_unauth_pipelining,
+    permit

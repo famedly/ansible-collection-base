@@ -20,6 +20,7 @@
   - name: install rspamd
     import_tasks: rspamd/rspamd.yml
     become: true
+    when: false
 
     #  - name: set reverse dns records
     #    import_tasks: reverse-dns.yml

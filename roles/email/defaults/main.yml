@@ -1,5 +1,6 @@
 #general vars
-email_domain: ratzupaltuff-test.famedly.de
+email_tld: famedly.de
+email_domain: "ratzupaltuff-test.{{ email_tld }}"
 email_hostname: "mail.{{ email_domain }}"
 email_base_path: "/opt/email"
 email_group_name: "email"
@@ -7,14 +8,13 @@ email_docker_network_name: "email"
 email_network_prefix: "172.3.0"
 email_network_gateway: "{{ email_network_prefix }}.1"
 email_network: "{{ email_network_prefix }}.0/24"
-email_local_send_network: "172.3.0.1/24"
+email_local_send_network: "172.4.0.1/24"
 
 #postfix
 postfix_user_name: postfix #TODO do not run as root #already used in main.cf mail owner
 postfix_config_files:
   - main.cf
   - master.cf
-#postfix_container_dkim_path: /etc/opendkim/keys
 postfix_docker_name: postfix
 postfix_docker_hostname: "{{ postfix_docker_name }}"
 postfix_docker_image: registry.gitlab.com/famedly/company/devops/containers/email/postfix
@@ -31,7 +31,7 @@ postfix_container_config_path: /etc/postfix
 postfix_smtpd_milters: 25 #dkim signed emails are sent there
 postfix_smtpd_milters_ip: "{{ email_network_prefix }}.4" #todo automate that #currently not used
 
-postfix_sender_networks: "{{ email_network }}" #, 127.0.0.0/24" #comma separated
+#postfix_sender_networks: "{{ email_network }}" #, 127.0.0.0/24" #comma separated
 
 #dovecot
 dovecot_user_name: vmail

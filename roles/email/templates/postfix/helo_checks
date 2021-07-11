@@ -1,0 +1,9 @@
+# HELO'ing as being in our own domain(s)?
+{{ email_domain }}             REJECT You are not in {{ email_domain }}
+{{ email_tld }}             REJECT You are not in {{ email_tld }}
+
+# HELO'ing with our IP address?
+{{ ansible_eth0.ipv4.address }}           REJECT You are not {{ ansible_eth0.ipv4.address }}
+
+# HELO'ing as "localhost?"
+localhost               REJECT You are not me
