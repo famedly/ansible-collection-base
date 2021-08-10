@@ -51,6 +51,8 @@
         - "{{ postfix_base_path }}/spool:{{ postfix_container_spool_path }}"
         - "{{ postfix_base_path }}/postmaster-notifications:/opt/postfix/postmaster-notifications:rw"
         - "{{ postfix_base_path }}/config/main.cf:{{ postfix_container_config_path }}/main.cf"
+        - "{{ postfix_base_path }}/helo_checks:{{ postfix_container_config_path }}/helo_checks" 
+          #prevent spoofed helo-messages
           # - "{{ postfix_base_path }}/config/master.cf:{{ postfix_container_config_path }}/master.cf" #currently default config
         - "{{ postfix_base_path }}/config/aliases:/etc/aliases:ro" #where to send sending problems to
       networks:
@@ -58,5 +60,9 @@
     become: true
 
   - name: search for new aliases and build fast lookup database
-    command: docker exec -i --user=root postfix /bin/sh -c 'postalias /etc/aliases'
+    command: docker exec -i --user=root postfix /bin/sh -c 'postalias lmdb:/etc/aliases'
+    become: true
+
+  - name: create helo-check database
+    command: docker exec -i --user=root postfix /bin/sh -c 'postmap lmdb:/etc/postfix/helo_checks'
     become: true

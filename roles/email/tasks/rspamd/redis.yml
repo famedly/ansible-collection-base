@@ -36,8 +36,8 @@
     #networks:
     #   - name: "{{ email_docker_network_name }}"
 
-  - name: create email docker-network
-    docker_network:
-      name: "{{ email_docker_network_name }}"
-      connected:
-        - "rspamd_redis"
+#  - name: create email docker-network
+#    docker_network:
+#      name: "{{ email_docker_network_name }}"
+#      connected:
+#        - "rspamd_redis"

@@ -20,7 +20,7 @@
   - name: install rspamd
     import_tasks: rspamd/rspamd.yml
     become: true
-    when: false
+    when: true
 
     #  - name: set reverse dns records
     #    import_tasks: reverse-dns.yml
@@ -30,16 +30,16 @@
     #import_tasks: dovecot.yml
     #become: true
 
-  - name: create email docker-network
-    docker_network:
-      name: "{{ email_docker_network_name }}"
-      connected:
-        - "{{ postfix_docker_name }}"
-        - "{{ dovecot_docker_name }}"
-        - "{{ rspamd_docker_name }}"
-        - "rspamd_redis"
-      ipam_config:
-        - subnet: "{{ email_network_prefix }}.0/24"
-          #aux_addresses: "{'{{ postfix_docker_name }}': '{{ email_network_prefix }}.2', '{{ dovecot_docker_name }}': '{{ email_network_prefix }}.3'}"
-    become: true
-    when: false
+#  - name: create email docker-network
+#    docker_network:
+#      name: "{{ email_docker_network_name }}"
+#      connected:
+#        - "{{ postfix_docker_name }}"
+#        - "{{ dovecot_docker_name }}"
+#        - "{{ rspamd_docker_name }}"
+#        - "rspamd_redis"
+#      ipam_config:
+#        - subnet: "{{ email_network_prefix }}.0/24"
+#          #aux_addresses: "{'{{ postfix_docker_name }}': '{{ email_network_prefix }}.2', '{{ dovecot_docker_name }}': '{{ email_network_prefix }}.3'}"
+#    become: true
+#    when: false

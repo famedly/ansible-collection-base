@@ -8,7 +8,7 @@ email_docker_network_name: "email"
 email_network_prefix: "172.3.0"
 email_network_gateway: "{{ email_network_prefix }}.1"
 email_network: "{{ email_network_prefix }}.0/24"
-email_local_send_network: "172.4.0.1/24"
+email_local_send_network: "{{ email_network }}"
 
 #postfix
 postfix_user_name: postfix #TODO do not run as root #already used in main.cf mail owner
@@ -18,9 +18,12 @@ postfix_config_files:
 postfix_docker_name: postfix
 postfix_docker_hostname: "{{ postfix_docker_name }}"
 postfix_docker_image: registry.gitlab.com/famedly/company/devops/containers/email/postfix
-postfix_docker_ports: []
-        #  - 25:25
+postfix_docker_ports: ['0.0.0.0:25:25']
+  #- 0.0.0.0:25:25
+
+  # - 2500:25
         #  - 587:587
+        #  - 465:465
         #  - 1587:1587 #smtp for dovecot
 postfix_docker_labels: {} #override e.g. for traefik
 
@@ -51,7 +54,8 @@ rspamd_user_name: rspamd
 rspamd_docker_name: rspamd
 rspamd_docker_hostname: "{{ rspamd_docker_name }}"
 rspamd_docker_image: registry.gitlab.com/famedly/company/devops/containers/email/rspamd
-rspamd_docker_ports: []
+rspamd_docker_ports: #[]
+  - 127.0.0.1:8080:11334
 rspamd_docker_labels: {}
 
 #rspamd_listening_address: "{{ email_network_prefix }}.1" #v4 for any v4 interface
@@ -66,7 +70,7 @@ rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"
   - "{{ rspamd_host_base_path }}/control_socket/:/run/rspamd:rw"
   - "{{ rspamd_host_base_path }}/dkim/://var/lib/rspamd/dkim/:ro"
-rspamd_install_redis: false
+rspamd_install_redis: true
 
 #DKIM
 dkim_selector_name: ratzupaltuff-test #dkim #hostname or month/year

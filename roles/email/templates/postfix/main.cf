@@ -131,9 +131,10 @@ myorigin = $mydomain
 #
 # Note: you need to stop/start Postfix when this parameter changes.
 #
-#inet_interfaces = all
+inet_interfaces = all
 #inet_interfaces = $myhostname
 #inet_interfaces = $myhostname, localhost
+#inet_interfaces = 127.0.0.1,{{ email_local_send_network }},{{ email_network }},172.17.0.0/24
 
 # The proxy_interfaces parameter specifies the network interface
 # addresses that this mail system receives mail on by way of a
@@ -178,7 +179,7 @@ myorigin = $mydomain
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
-mydestination = $myhostname, localhost.$mydomain, localhost, mail.$mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost, mail.$mydomain, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
@@ -287,7 +288,6 @@ unknown_local_recipient_reject_code = 550
 mynetworks = {{ email_local_send_network }}
 
 #127.0.0.0/8
-#, 172.17.0.0/16 traefik uses this address too, if used you created an open relay
 
 # The relay_domains parameter restricts what destinations this system will
 # relay mail to.  See the smtpd_recipient_restrictions description in
@@ -372,7 +372,7 @@ relay_domains =
 # 
 # Specify 0 to disable the feature. Valid delays are 0..10.
 # 
-#in_flow_delay = 1s
+in_flow_delay = 1s
 
 # ADDRESS REWRITING
 #
@@ -409,6 +409,7 @@ relay_domains =
 # It will take a minute or so before changes become visible.  Use
 # "postfix reload" to eliminate the delay.
 #
+#alias_maps = db:/etc/aliases
 #alias_maps = dbm:/etc/aliases
 #alias_maps = hash:/etc/aliases
 alias_maps = lmdb:/etc/aliases
@@ -599,8 +600,8 @@ smtpd_banner = {{ email_hostname }} ESMTP
 # parameter.  The default is $default_destination_concurrency_limit for
 # most delivery transports. For the local delivery agent the default is 2.
 
-#local_destination_concurrency_limit = 2
-#default_destination_concurrency_limit = 20
+local_destination_concurrency_limit = 2
+default_destination_concurrency_limit = 10
 
 # DEBUGGING CONTROL
 #
@@ -616,7 +617,7 @@ debug_peer_level = 2
 # increase the verbose logging level by the amount specified in the
 # debug_peer_level parameter.
 #
-debug_peer_list = 127.0.0.1, 172.3.0.0/24, 172.4.0.0/24
+debug_peer_list = 127.0.0.1, 172.3.0.0/24
 #TODO
 
 # The debugger_command specifies the external command that is executed
@@ -690,28 +691,35 @@ sample_directory = /etc/postfix
 # readme_directory: The location of the Postfix README files.
 #
 readme_directory = /usr/share/doc/postfix/readme
+
 inet_protocols = ipv4
+#TODO support ipv6?
+
 meta_directory = /etc/postfix
 shlib_directory = /usr/lib/postfix
 maillog_file = /dev/stdout
+
 notify_classes = resource, software, bounce, 2bounce, delay, policy, protocol
+
 #Disable SMTPUTF8, because libraries are missing in Alpine Linux
 smtputf8_enable = no
+
 #Increase message size limit from 10MB(10240000) to 100MiB
 message_size_limit = 104857600
+
 #has to be larger than message size limit
 #virtual_mailbox_limit = 304857600
 mailbox_size_limit = 304857600
 
+#connect to rspamd via milter protocol
 milter_protocol = 6
-
 smtpd_milters = inet:{{ rspamd_listening_address }}:{{ rspamd_milter_listening_port }}
 non_smtpd_milters = inet:{{ rspamd_listening_address }}:{{ rspamd_milter_listening_port }}
 
-# skip mail without checks if something goes wrong
+# skip mail without checks if something goes wrong #TODO disable?
 milter_default_action = accept
+
 #setting defines several variables that rspamd expects for better spam detection
-#milter_mail_macros="i {mail_addr} {client_addr} {client_name} {auth_authen}"
 milter_mail_macros =  i {mail_addr} {client_addr} {client_name} {auth_authen}
 
 smtpd_error_sleep_time = 3s
@@ -731,7 +739,6 @@ unverified_sender_reject_reason = Address verification failed
 #dont send the exact reason why something failed to unverified senders
 
 #smtpd_relay_restrictions = 
-	
 
 #	permit_mynetworks,
 #	reject_unauth_destination,
@@ -742,26 +749,27 @@ unverified_sender_reject_reason = Address verification failed
 #smtpd_recipient_restrictions = 
 
 smtpd_relay_restrictions = 
-    warn_if_reject permit_mynetworks,
+    permit_mynetworks,
 #    permit_sasl_authenticated,
-    reject_unknown_sender_domain,
+    warn_if_reject reject_unknown_sender_domain,
     reject_unauth_destination
 
 smtpd_recipient_restrictions =
     permit_mynetworks,
-    reject_non_fqdn_helo_hostname,
+    warn_if_reject reject_non_fqdn_helo_hostname,
     reject_non_fqdn_sender,
     reject_non_fqdn_recipient,
-    reject_unknown_reverse_client_hostname,
-    reject_invalid_helo_hostname,
-    reject_unknown_helo_hostname,
-    reject_unknown_sender_domain,
-    reject_unknown_recipient_domain,
+    warn_if_reject reject_unknown_reverse_client_hostname,
+    warn_if_reject reject_invalid_helo_hostname,
+    warn_if_reject reject_unknown_helo_hostname,
+    warn_if_reject reject_unknown_sender_domain,
+    warn_if_reject reject_unknown_recipient_domain,
     #check_recipient_access hash:/etc/postfix/recipient_access,
-    check_helo_access hash:/etc/postfix/helo_checks,
+    check_helo_access lmdb:/etc/postfix/helo_checks,
     #check_sender_access hash:/etc/postfix/sender_access,
     #reject_rbl_client cbl.abuseat.org,
-    reject_rbl_client zen.spamhaus.org,
+    #reject_rbl_client zen.spamhaus.org, #TODO enable
+    warn_if_reject reject_rbl_client zen.spamhaus.org,
     #zen is the combination of all spamhaus blacklists
     #reject_rbl_client sbl.spamhaus.org,
     #reject_rbl_client pbl.spamhaus.org,
