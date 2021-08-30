@@ -116,8 +116,8 @@ mydomain = {{ email_domain }}
 # myorigin also specifies the default domain name that is appended
 # to recipient addresses that have no @domain part.
 #
-#myorigin = $myhostname
-myorigin = $mydomain
+myorigin = $myhostname
+#myorigin = $mydomain
 
 # RECEIVING MAIL
 
@@ -179,7 +179,7 @@ inet_interfaces = all
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
-mydestination = $myhostname, localhost.$mydomain, localhost, mail.$mydomain, $mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost, mail.$myhostname, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
@@ -584,6 +584,7 @@ alias_database = lmdb:/etc/aliases
 #only send minimal information to not be marked as spam
 #smtpd_banner = $mydomain ESMTP
 smtpd_banner = {{ email_hostname }} ESMTP
+#smtpd_banner = {{ email_domain }} ESMTP
 #ESMTP $mail_name (Alpine)
 
 # PARALLEL DELIVERY TO THE SAME DESTINATION

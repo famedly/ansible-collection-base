@@ -1,7 +1,7 @@
 #general vars
 email_tld: famedly.de
-email_domain: "ratzupaltuff-test.{{ email_tld }}"
-email_hostname: "mail.{{ email_domain }}"
+email_domain: "{{ email_tld }}"
+email_hostname: "ratzupaltuff-test.{{ email_domain }}"
 email_base_path: "/opt/email"
 email_group_name: "email"
 email_docker_network_name: "email"
@@ -73,5 +73,6 @@ rspamd_docker_volumes:
 rspamd_install_redis: true
 
 #DKIM
-dkim_selector_name: ratzupaltuff-test #dkim #hostname or month/year
+#dkim_selector_name: ratzupaltuff-test #dkim #hostname or month/year
+dkim_selector_name: dkim
 #dkim_cert_filename: "{{ dkim_selector_name }}.key.pem"
