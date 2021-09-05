@@ -24,6 +24,8 @@ uucp:		root
 www:		root
 ftp-bugs:	root
 postfix:	root
+dmarc-rua:	/opt/postfix/postmaster-notifications/dmarc-rua.txt
+dmarc-ruf:	/opt/postfix/postmaster-notifications/dmarc-ruf.txt
 
 # Put your local aliases here.
 
