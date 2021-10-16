@@ -66,10 +66,12 @@ rspamd_milter_listening_port: "11332"
 rspamd_host_base_path: "{{ email_base_path }}/rspamd"
 rspamd_docker_conf_path: "/etc/rspamd"
 rspamd_docker_static_runtime_data_path: "/var/lib/rspamd" #*.hs, *.hsmp, *.map files in here get recreated every start and do not have to be backed up
+rspamd_dkim_location_host: "{{ rspamd_host_base_path }}/dkim"
+rspamd_dkim_location_container: "/var/lib/rspamd/dkim"
 rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/static_runtime_data/:{{ rspamd_docker_static_runtime_data_path }}:rw"
   - "{{ rspamd_host_base_path }}/control_socket/:/run/rspamd:rw"
-  - "{{ rspamd_host_base_path }}/dkim/://var/lib/rspamd/dkim/:ro"
+  - "{{ rspamd_dkim_location_host }}/:{{ rspamd_dkim_location_container }}/:ro"
 rspamd_install_redis: true
 
 #DKIM

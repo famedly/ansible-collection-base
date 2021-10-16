@@ -19,7 +19,7 @@
       path: '{{ rspamd_host_base_path }}/{{ item }}'
       state: directory
       #owner: root
-      owner: "{{ rspamd_user.name }}"
+      owner: "{{ rspamd_user.uid }}"
       group: "{{ rspamd_user.group }}"
       mode: '0700'
     with_items:
@@ -66,6 +66,11 @@
 
       #- name: rspamd cert-gen
       #import_tasks: rspamd_cert_gen.yml #TODO
+  
+  - name: dkim-cert-gen
+    import_tasks: rspamd/gen_dkim_keys.yml
+    become: true
+      #when: gen_dkim_keys
 
   - name: prepare docker mount volume list
     set_fact:
@@ -73,12 +78,6 @@
     with_filetree: '../templates/rspamd/configdir'
     when: item.state == 'file'
     no_log: True
-
-#  - debug: msg={{ rspamd_docker_volumes }}
-
-    #  - name: wait for redis to be available
-    #ansible.builtin.wait_for:
-    #  timeout: 30 #TODO solve differently
 
   - name: install rspamd container
     docker_container:

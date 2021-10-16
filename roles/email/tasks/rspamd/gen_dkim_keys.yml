@@ -1,0 +1,33 @@
+---
+  - name: create cert files with right permissions
+    copy:
+      content: ""
+      dest: "{{ rspamd_dkim_location_host }}/{{ item }}"
+      force: no
+      owner: "{{ rspamd_user.name }}"
+      group: "{{ rspamd_user.group }}"
+      mode: '0700'
+    with_items:
+      - "{{ dkim_selector_name }}_test.key"
+      - "{{ dkim_selector_name }}_dns_record.txt"
+
+  - name: run rspamd cert-gen container
+    docker_container:
+      name: "rspamd_cert_gen"
+      image: "{{ rspamd_docker_image }}"
+      ports: []
+      labels: {}
+      restart_policy: "no"
+      recreate: true
+        #user: "{{ rspamd_user.uid }}:{{ rspamd_user.group }}"
+      user: "root"
+        #"/bin/sh: can't create /var/lib/rspamd/dkim/dkim_dns_record.txt: Permission denied\n", "status": 1
+      pull: true
+      entrypoint: "/bin/sh"
+      command: 
+        - "-c"
+        - "/usr/bin/rspamadm dkim_keygen -s {{ dkim_selector_name }} -b 2048 -d {{ email_hostname }} -k {{ rspamd_dkim_location_container }}/{{ dkim_selector_name }}_test.key > {{ rspamd_dkim_location_container }}/{{ dkim_selector_name }}_dns_record.txt"
+      volumes: 
+        - "{{ rspamd_dkim_location_host }}:{{ rspamd_dkim_location_container }}"
+      command_handling: "correct"
+      detach: "no"
