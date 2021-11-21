@@ -1,0 +1,9 @@
+---  
+#  - name: set reverse dns records
+#    import_tasks: reverse-dns.yml
+#    become: true
+
+  - include_role:
+      name: dns
+      apply:
+        delegate_to: localhost

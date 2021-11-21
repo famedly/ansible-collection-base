@@ -11,20 +11,24 @@
       state: directory
       group: "{{ email_group_name }}"
     become: true
+    when: false
+
+  - name: prepare dns records
+    import_tasks: dns.yml
+    become: true
+    when: true
 
   - name: install postfix
     import_tasks: postfix.yml
     become: true
-    #when: false
+    when: false
     
   - name: install rspamd
     import_tasks: rspamd/rspamd.yml
     become: true
-    when: true
+    when: false
 
-    #  - name: set reverse dns records
-    #    import_tasks: reverse-dns.yml
-    #    become: true
+
 
     #- name: install dovecot
     #import_tasks: dovecot.yml

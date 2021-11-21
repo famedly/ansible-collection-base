@@ -73,6 +73,10 @@ rspamd_docker_volumes:
   - "{{ rspamd_host_base_path }}/control_socket/:/run/rspamd:rw"
   - "{{ rspamd_dkim_location_host }}/:{{ rspamd_dkim_location_container }}/:ro"
 rspamd_install_redis: true
+  #rspamd_dkim_key_file_was_missing: not dkim_file_check.stat.exists
+  #rspamd_dkim_key_file_was_empty: key_already_generated.changed
+  #rspamd_dkim_key_was_present: key_already_generated.msg == ""
+rspamd_dkim_override_key: false
 
 #DKIM
 #dkim_selector_name: ratzupaltuff-test #dkim #hostname or month/year

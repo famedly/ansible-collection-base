@@ -1,0 +1,18 @@
+dns_zones:
+  - "famedly.{{ famedly_tld }}"
+  - "famedly.{{ famedly_dnssec_tld }}"
+dns_host_name_short: "{{ famedly_subdomain }}"
+dns_host_ipv4: "{{ famedly_server_host_ipv4 }}"
+dns_host_ipv6: "{{ famedly_server_host_ipv6 }}"
+dns_text_records:
+  - records:
+      - name: "dkim._domainkey.ratzupaltuff-test"
+        content: "v=DKIM1; k=rsa; t=s; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9T9xfbZRkfZIhmUHgMU5GBUerx2pdy9VGVmvPcyjoso7o3TCcStNFXSQifKRPAhj5RusYbd5JgPcg5lf6gdBWGyqp1TENrB9lE8yuYokfIowEH4x0WlCjr9yqxZBUfS3a7MGO8uQOiyZhsSvcQmuP0My3F1jOZneb9DZWoVirKQIDAQAB"      - name: "_dmarc.ratzupaltuff-test"
+        content: "v=DMARC1; p=reject; fo=1; rua=mailto:dmarc-rua@ratzupaltuff-test.famedly.de; ruf=mailto:dmarc-ruf@ratzupaltuff-test.famedly.de"
+      - name: "ratzupaltuff-test"
+        content: "v=spf1 mx ip4:116.203.43.126 +all"
+ssh_ecdsa_sha256_fingerprint:
+  fingerprint: 
+
+dns_cloudflare_api_key: "{{ cloudflare_dns_api_token }}"
+dnssec_zone: "famedly.{{ famedly_dnssec_tld }}"
