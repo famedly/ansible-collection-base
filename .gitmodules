@@ -3,4 +3,4 @@
 	url = https://github.com/geerlingguy/ansible-role-docker.git
 [submodule "roles/pip"]
 	path = roles/pip
-	url = https://github.com/geerlingguy/ansible-role-pip.git
+	url = https://github.com/Famedly/ansible-role-pip
