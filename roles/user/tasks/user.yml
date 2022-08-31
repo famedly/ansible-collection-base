@@ -1,9 +1,9 @@
 - name: "create user {{ user.name }}"
   user:
     name: "{{ user.name }}"
-    shell: "/bin/bash"
-    groups: []
-    comment: "{{ user.gecos | default(omit) }}"
+    shell: "{{ user_set_shell | default(true) | ternary(user.shell | default('/bin/bash'), omit) }}"
+    groups: "{{ user_set_groups | default(true) | ternary(user.groups | default([]), omit) }}"
+    comment: "{{ user_set_gecos | default(true) | ternary(user.gecos | default(omit), omit) }}"
   become: yes
 
 - name: "add ssh key for {{ user.name }}"

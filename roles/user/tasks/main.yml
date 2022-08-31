@@ -20,4 +20,5 @@
     owner: root
     mode: 0440
     validate: "/usr/sbin/visudo -cf %s"
+  when: user_template_sudoers | default(true)
   become: yes
