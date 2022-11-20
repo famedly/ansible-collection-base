@@ -41,6 +41,7 @@
     ulimits: "{{ ldap_container_ulimits }}"
     memory_reservation: "{{ ldap_container_memory_reservation }}"
     memory: "{{ ldap_container_memory }}"
+    command: "{{ ldap_container_command | default(omit) }}"
     recreate: "{{ ldap_container_recreate }}"
     restart_policy: unless-stopped
     command: "{{ ldap_container_command | default(omit) }}"
