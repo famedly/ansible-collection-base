@@ -1,0 +1,15 @@
+---
+
+# this should NEVER be overwritten. instead, overwrite _entry_opts_merged
+rclone_serve_restic_container_entry: >
+  {% set args = [] %}
+  {% for opt in rclone_serve_restic_entry_opts_merged %}
+    {% set (opt,value) = opt %}
+    {% if value not "false" %}    # if value is false, then treat as valueless arg to be absent
+      {% do args.append({{ '--' ~ opt | replace('_','-') }}) %}
+      {% if value not "true" %}     # if the value is true, then treat as valueless arg to be present
+        {% do args.append({{ value }}) %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  rclone serve restic {{ args | join(' ') ~ ' ' ~ (rclone_serve_restic_backend | default ('default')) }}

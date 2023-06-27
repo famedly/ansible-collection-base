@@ -1,0 +1,64 @@
+---
+
+rclone_serve_restic_container_image_reference: >-
+  {{
+    rclone_serve_restic_container_image_repository
+    ~ ':'
+    ~ rclone_serve_restic_container_image_tag | default(rclone_serve_restic_version)
+  }}
+
+rclone_serve_restic_container_image_repository: >-
+  {{
+    [
+    (
+      container_registries[rclone_serve_restic_container_image_registry]
+      | default(rclone_serve_restic_container_image_registry)
+    ),
+    rclone_serve_restic_container_image_namespace | default(omit),
+    rclone_serve_restic_container_image_name
+    ] | join('/')
+
+  }}
+
+rclone_serve_restic_container_image_registry: "docker.io"
+rclone_serve_restic_container_image_namespace: "rclone"
+rclone_serve_restic_container_image_name: "rclone"
+# rclone_serve_restic_container_image_tag:
+
+rclone_serve_restic_container_restart_policy: unless-stopped
+
+rclone_serve_restic_container_base_labels:
+  version: "{{ rclone_serve_restic_version }}"
+
+rclone_serve_restic_container_labels: >-
+  {{ rclone_serve_restic_container_base_labels
+  | combine(rclone_serve_restic_container_extra_labels | default({})) }}
+
+rclone_serve_restic_container_binds:
+  port: 8000
+  internal:
+    address: '[::1]'
+    port: 8080
+
+rclone_serve_restic_container_ports:
+  - "{{ rclone_serve_restic_container_bind.port ~ ':'
+      ~ rclone_serve_restic_container_bind.internal.port }}"
+
+rclone_serve_restic_entry_opts_default:
+  addr: "{{ rclone_serve_restic_container_bind.internal | join(':', attribute=value) }}"
+  config: "{{ rclone_serve_restic_config_file }}"
+  private-repos: "true"
+  append-only: "true"
+  htpasswd: "{{ rclone_serve_restic_htpasswd_file }}"
+
+rclone_serve_restic_entry_opts_merged: >-
+  {{ rclone_serve_restic_entry_opts
+  | default([])
+  | combine(rclone_serve_restic_entry_opts_default) }}
+
+rclone_serve_restic_container_volumes:
+  - "{{ rclone_config_path ~ ':' ~ rclone_config_path }}"
+rclone_serve_restic_container_env: {}
+rclone_serve_restic_container_name: 'rclone-serve-restic'
+
+rclone_serve_restic_container_force_pull: false

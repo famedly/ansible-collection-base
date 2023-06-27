@@ -1,0 +1,6 @@
+{% for section in ini %}
+[{{ section }}]
+{% for (key, value) in section %}
+    {{ key  ~ '=' ~ value }}
+{% endfor %}
+{% endfor %}

@@ -1,0 +1,8 @@
+---
+
+- name: Restart rclone serve restic container
+  listen: container-rclone-serve-restic-restart
+  community.docker.docker_container:
+    name: "{{ rclone_serve_restic_container_name }}"
+    state: started
+    restart: true

@@ -1,0 +1,22 @@
+---
+- hosts: '{{ "rclone_serve_restic_target_hosts" | default("rclone_serve_restic") }}'
+  become: true
+  roles:
+    - role: rclone_serve_restic
+
+  vars:
+    routing_service_name: rclone_serve_restic
+    routing_server_port: "{{ rclone_serve_restic_container_binds.port }}"
+    routing_traffic_public_rule: >-
+      Host(`{{ famedly_instance_domain }}`)
+      && PathPrefix(`/restic/`)
+    routing_traffic_public_middlewares:
+      - stripprefix
+    routing_traffic_metrics_rule: Path(`/restic/metrics`)
+    routing_traffic_metrics_middlewares:
+      - stripprefix
+    famedly_traefik_middlewares:
+      stripprefix:
+        stripprefix:
+          prefix: /restic
+    rclone_serve_restic_container_labels: "{{ famedly_traefik_labels_flat }}"

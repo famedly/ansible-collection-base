@@ -1,0 +1,28 @@
+---
+
+rclone_serve_restic_user: "rclone"
+
+rclone_serve_restic_version: 1.62
+
+rclone_serve_restic_config_path: "/opt/rclone-serve-restic/"
+
+rclone_serve_restic_entry_opts: []    # allows you to specify extra options passed to the process
+
+rclone_serve_restic_config_file: "{{ rclone_serve_restic_config_path ~ 'rclone_serve_restic.conf' }}"
+rclone_serve_restic_htpasswd_file: "{{ rclone_serve_restic_config_path ~ 'rclone_serve_restic.htpasswd' }}"
+rclone_serve_restic_htpasswd_scheme: "bcrypt"
+
+rclone_serve_restic_default_backend:
+  type: s3
+  provider: Scaleway
+  env_auth: false
+  region: nl-ams
+  acl: private
+
+rclone_serve_restic_backend_config:
+  endpoint: "{{ rclone_serve_restic_s3.endpoint }}"
+  access_key_id: "{{ rclone_serve_restic_s3.key_id }}"
+  secret_access_key: "{{ rclone_serve_restic_s3.secret }}"
+
+rclone_serve_restic_backend_config_merged:
+  - default: rclone_serve_restic_backend_config | combine(rclone_serve_restic_default_backend)

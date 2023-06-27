@@ -1,0 +1,53 @@
+---
+
+- name: Ensure user is present
+  ansible.builtin.user:
+    name: "{{ rclone_serve_restic_user }}"
+    state: present
+    system: true
+  register: rclone_serve_restic_user_res
+
+- name: Ensure config directory is present
+  ansible.builtin.file:
+    path: "{{ rclone_serve_restic_config_path }}"
+    state: directory
+    mode: '0640'
+    owner: "{{ rclone_serve_restic_user_res.uid }}"
+    group: "{{ rclone_serve_restic_user_res.group }}"
+
+- name: Ensure config is present
+  ansible.builtin.template:
+    src: to-ini.j2
+    dest: "{{ rclone_serve_restic_config_file }}"
+    mode: '0600'
+    owner: "{{ rclone_serve_restic_user_res.uid }}"
+    group: "{{ rclone_serve_restic_user_res.group }}"
+  vars:
+    ini: "{{ rclone_serve_restic_backend_config_merged }}"
+
+- name: Ensure container image is present locally
+  docker_image:
+    name: "{{ rclone_serve_restic_container_image }}"
+    source: pull
+    state: present
+    force_source: "{{ rclone_serve_restic_container_force_pull }}"
+  register: rclone_serve_restic_container_image_pulled
+  until: rclone_serve_restic_container_image_pulled is success
+  retries: 10
+  delay: 5
+
+- name: Ensure container is started
+  community.docker.docker_container:
+    image: "{{ rclone_serve_restic_container_image }}"
+    name: "{{ rclone_serve_restic_container_name }}"
+    state: started
+    restart_policy: "{{ rclone_serve_restic_container_restart_policy | default(omit) }}"
+    user: "{{ rclone_serve_restic_user_res.uid ~ ':' ~ rclone_serve_restic_user_res.group }}"
+    volumes: "{{ rclone_serve_restic_container_volumes | default(omit) }}"
+    ports: "{{ rclone_serve_restic_container_ports | default(omit) }}"
+    env: "{{ rclone_serve_restic_container_env | default(omit) }}"
+    labels: "{{ rclone_serve_restic_container_labels_merged | default(omit) }}"
+    entrypoint: "{{ rclone_serve_restic_container_entry | default(omit) }}"
+    etc_hosts: "{{ rclone_serve_restic_container_etc_hosts | default(omit) }}"
+    networks: "{{ rclone_serve_restic_container_networks | default(omit) }}"
+    purge_networks: "{{ rclone_serve_restic_container_purge_networks | default(omit) }}"
