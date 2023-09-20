@@ -18,16 +18,19 @@
   tags: ["prepare", "prepare-lego"]
 
 - name: "Ensure base directory for lego is created"
-  file:
-    path: "{{ lego_base_path }}"
+  ansible.builtin.file:
+    path: "{{ item }}"
     state: "directory"
     owner: "{{ lego_certificate_store_user }}"
     group: "{{ lego_certificate_store_group }}"
     mode: "0755"
+  loop:
+    - "{{ lego_base_path }}"
+    - "{{ lego_instance_base_path }}"
   tags: ["prepare", "prepare-lego"]
 
 - name: "Ensure certificate directory exists and has the configured permissions"
-  file:
+  ansible.builtin.file:
     path: "{{ lego_certificate_store }}"
     state: "directory"
     owner: "{{ lego_certificate_store_user }}"
@@ -136,7 +139,8 @@
         path: "{{ lego_certificate_store }}/{{ lego_certificate.domains[0] }}.crt"
       register: "lego_certificate_stat"
       changed_when: "not lego_certificate_stat.stat.exists"
-      notify: ["Run lego"]
+      notify:
+        - "lego_run"
       tags: ["deploy", "deploy-lego"]
 
     - name: "Fetch certificate info"
@@ -163,7 +167,8 @@
           }}
       when: "lego_certificate_stat.stat.exists"
       changed_when: "not lego_certificate_sans_equal"
-      notify: ["Run lego"]
+      notify:
+        - "lego_run"
       tags: ["deploy", "deploy-lego"]
 
     - name: "Compare pubkey type, notify handler if it differs"
@@ -177,41 +182,49 @@
           }}
       when: "lego_certificate_stat.stat.exists"
       changed_when: "lego_certificate_pubkey_type_differs"
-      notify: ["Run lego"]
+      notify:
+        - "lego_run"
       tags: ["deploy", "deploy-lego"]
 
 - name: "Ensure systemd unit file for lego is templated"
-  template:
+  ansible.builtin.template:
     src: "lego.service.j2"
-    dest: "{{ lego_systemd_path }}/lego.service"
+    dest: "{{ lego_systemd_path }}/lego@.service"
     owner: "root"
     group: "root"
     mode: "0755"
-  notify: ["Reload systemd"]
+  notify:
+    - "systemd_reload"
   tags: ["deploy", "deploy-lego"]
 
 - name: "Ensure systemd timer for lego is templated"
-  template:
+  ansible.builtin.template:
     src: "lego.timer.j2"
-    dest: "{{ lego_systemd_path }}/lego.timer"
+    dest: "{{ lego_systemd_path }}/lego{{ ('-' ~ lego_instance) if lego_instance else '' }}.timer"
     owner: "root"
     group: "root"
     mode: "0755"
-  notify: ["Reload systemd"]
+  notify:
+    - "systemd_reload"
   tags: ["deploy", "deploy-lego"]
+
+- name: "Ensure env file per instance is templated"
+  ansible.builtin.template:
+    src: "lego.env.j2"
+    dest: "{{ lego_base_path }}/{{ lego_instance | default(lego_default_systemd_instance) }}.conf"
 
 - name: "Flush handlers to ensure systemd has loaded the unit files"
   meta: "flush_handlers"
 
 - name: "Enable lego.service"
-  systemd:
-    name: "lego.service"
+  ansible.builtin.systemd:
+    name: "lego{{ ('@' ~ lego_instance) if lego_instance else '' }}.service"
     enabled: true
   tags: ["deploy", "deploy-lego"]
 
 - name: "Enable lego.timer"
-  systemd:
-    name: "lego.timer"
+  ansible.builtin.systemd:
+    name: "lego{{ ('-' ~ lego_instance) if lego_instance else '' }}.timer"
     state: "started"
     enabled: true
   tags: ["deploy", "deploy-lego"]

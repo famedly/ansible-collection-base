@@ -5,24 +5,16 @@ Description=lego - Let's Encrypt client written in Go
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=lego
-{% for envvar in lego_configuration_merged.environment %}
-Environment={{ envvar }}={{ lego_configuration_merged.environment[envvar] }}
-{% endfor %}
+EnvironmentFile={{ lego_base_path }}/%i.conf
 Type=oneshot
-Group={{ lego_user_res.group }}
-User={{ lego_user_res.name }}
-WorkingDirectory={{ lego_base_path }}
-ExecStartPre=+-chown {{ lego_certificate_store_user }}:{{ lego_certificate_store_group }} {{ lego_certificate_store }}
-ExecStartPre=+-chmod {{ lego_certificate_store_mode }} {{ lego_certificate_store }}
-ExecStart={{ lego_command_systemd }}
-ExecStartPost=+-/bin/sh -c 'chown {{ lego_certificate_store_user }}:{{ lego_certificate_store_group }} {{ lego_certificate_store }}/*'
-ExecStartPost=+-/bin/sh -c 'chmod 0640 {{ lego_certificate_store }}/*'
-{% if lego_enable_metrics_textfile %}
-ExecStartPost=+-/usr/bin/python3 {{ lego_base_path }}/metrics-textfile.py
-{% endif %}
-{% if lego_post_renewal_script is defined %}
-ExecStartPost=+-{{ lego_post_renewal_script }}
-{% endif %}
+ExecStartPre=+-/usr/bin/bash -c 'chown $(getent passwd | awk -F: \'$$3 == ${LEGO_CERT_STORE_OWNER} {print $$1}\'):$(getent group | grep ${LEGO_CERT_STORE_GROUP} | cut -d ':' -f1) ${LEGO_CERT_STORE_PATH}'
+ExecStartPre=+-/usr/bin/bash -c "chmod ${LEGO_CERT_STORE_MODE} ${LEGO_CERT_STORE_PATH}"
+ExecStart=/usr/bin/bash -c 'cd $LEGO_CWD && sudo -u ${LEGO_USER} -g $(getent group | grep ${LEGO_GROUP} | cut -d ':' -f1) ${LEGO_COMMAND}'
+ExecStartPost=+-/bin/sh -c 'chown ${LEGO_CERT_STORE_OWNER}:${LEGO_CERT_STORE_GROUP} ${LEGO_CERT_STORE_PATH}/*'
+ExecStartPost=+-/bin/sh -c 'chmod 0640 ${LEGO_CERT_STORE_PATH}/*'
+ExecStartPost=+-/usr/bin/bash -c 'test -n "${LEGO_ENABLE_METRICS-}" && /usr/bin/python3 ${LEGO_CWD}/metrics-textfile.py'
+ExecStartPost=+-${LEGO_POST_RENEW_HOOK_PATH}
 
 [Install]
 WantedBy=multi-user.target
+DefaultInstance={{ lego_default_systemd_instance }}

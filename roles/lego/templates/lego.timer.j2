@@ -20,7 +20,7 @@ RandomizedDelaySec={{ lego_timer_random_delay }}
 Persistent={{ lego_timer_persistent | string }}
 {% endif %}
 
-Unit=lego.service
+Unit=lego{{ ('@' ~ lego_instance) if lego_instance else ''}}.service
 
 [Install]
 WantedBy=timers.target

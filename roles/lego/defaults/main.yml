@@ -1,6 +1,10 @@
 ---
+lego_instance: ~
 lego_base_path: "/opt/lego"
-lego_certificate_store: "{{ lego_base_path }}/certificates"
+lego_instance_base_path: >-
+  /opt/lego{{ ('-' ~ lego_instance) if lego_instance else ''}}
+lego_certificate_store: >-
+  {{ lego_instance_base_path }}/certificates
 lego_certificate_store_user: "{{ lego_user_res.uid | default(lego_user) }}"
 lego_certificate_store_group: "{{ lego_user_res.group | default(lego_user) }}"
 lego_certificate_store_mode: "0750"
@@ -9,8 +13,10 @@ lego_version: "4.12.3"
 lego_system_type: "linux"
 lego_system_arch: "amd64"
 lego_executable: "{{ lego_base_path }}/lego"
-lego_account_base_path: "{{ lego_base_path }}/accounts"
+lego_account_base_path: >-
+  {{ lego_instance_base_path }}/accounts
 lego_cap_net_bind_service: true
+lego_default_systemd_instance: "lego"
 
 lego_enable_metrics_textfile: false
 
@@ -80,7 +86,7 @@ lego_configuration_defaults:
       server: "{{ lego_letsencrypt_servers[lego_letsencrypt_environment] }}"
       accept-tos: true
       email: "{{ lego_certificate.email }}"
-      path: "{{ lego_base_path }}"
+      path: "{{ lego_instance_base_path }}"
       key-type: "{{ lego_configuration_default_key_type }}"
     run: {}
     renew:
@@ -90,7 +96,6 @@ lego_configuration_defaults:
 lego_install_dependencies: false
 lego_dependencies:
   Debian:
-    "11":
-      - "python3-cryptography"
     all:
+      - "acl"
       - "python3-cryptography"

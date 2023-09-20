@@ -1,5 +1,6 @@
 ---
 - name: "Run lego"
+  listen: lego_run
   become: true
   become_user: "{{ lego_user_res.name }}"
   environment: "{{ lego_configuration_merged.environment }}"
@@ -7,5 +8,6 @@
   register: "lego_run"
 
 - name: "Reload systemd"
+  listen: systemd_reload
   systemd:
     daemon_reload: true
