@@ -99,7 +99,6 @@ class SecretStore:
         password_store_path: str = "~/.password-store/",
         file_extension: str = ".gpg",
         keyring: str = "pubring.kbx",
-        gnupg_home: str = "~/.gnupg",
         pass_gpg_id_file: str = ".gpg-id",
         recipient_method: str = "pass_file",
         recipient_list: List[str] = None,
@@ -110,7 +109,6 @@ class SecretStore:
 
         # Create gpg object
         self.__gpg = gnupg.GPG(
-            gnupghome=Path(gnupg_home).expanduser().absolute().as_posix(),
             keyring=keyring,
         )
         self.gpg = self.__gpg
