@@ -1,0 +1,67 @@
+---
+- name: "Ensure acmed user is created"
+  ansible.builtin.user:
+    name: "{{ acmed_user }}"
+    state: "present"
+    system: true
+  register: "acmed_user_registered"
+  tags: ["prepare", "prepare-acmed"]
+
+- name: "Ensure base paths for acmed are created"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+    owner: "{{ acmed_user_registered.uid }}"
+    group: "{{ acmed_user_registered.group }}"
+    mode: "0755"
+  loop:
+    - "{{ acmed_base_path }}"
+    - "{{ acmed_config_path }}"
+    - "{{ acmed_config_certificates_directory }}"
+  tags: ["prepare", "prepare-acmed"]
+
+- name: "Ensure state paths for acmed are created"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+    owner: "{{ acmed_user_registered.uid }}"
+    group: "{{ acmed_user_registered.group }}"
+    mode: "0750"
+  loop:
+    - "{{ acmed_state_path }}"
+    - "{{ acmed_state_account_directory }}"
+    - "{{ acmed_state_certificates_directory }}"
+  tags: ["prepare", "prepare-acmed"]
+
+- name: Configure acmed
+  ansible.builtin.import_tasks: "configure.yml"
+  tags: ["deploy", "deploy-acmed"]
+
+- name: Ensure container image is present locally
+  community.docker.docker_image:
+    name: "{{ acmed_container_image_reference }}"
+    source: "pull"
+    state: "present"
+    force_source: "{{ acmed_container_force_pull }}"
+  register: acmed_container_image_pulled
+  until: acmed_container_image_pulled is success
+  retries: 10
+  delay: 5
+  tags: ["deploy", "deploy-acmed"]
+
+- name: Ensure container is started
+  community.docker.docker_container:
+    image: "{{ acmed_container_image_reference }}"
+    name: "{{ acmed_container_name }}"
+    state: "started"
+    restart_policy: "{{ acmed_container_restart_policy | default(omit) }}"
+    user: "{{ acmed_user_registered.uid ~ ':' ~ acmed_user_registered.group }}"
+    volumes: "{{ acmed_container_volumes_merged }}"
+    ports: "{{ acmed_container_ports }}"
+    env: "{{ acmed_container_env | default(omit) }}"
+    labels: "{{ acmed_container_labels_merged | default(omit) }}"
+    command: "{{ acmed_container_command | default(omit) }}"
+    etc_hosts: "{{ acmed_container_etc_hosts | default(omit) }}"
+    networks: "{{ acmed_container_networks | default(omit) }}"
+    purge_networks: "{{ acmed_container_purge_networks | default(omit) }}"
+  tags: ["deploy", "deploy-acmed"]

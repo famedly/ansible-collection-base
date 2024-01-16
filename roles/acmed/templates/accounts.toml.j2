@@ -1,0 +1,19 @@
+
+{% for account in acmed_accounts %}
+[[account]]
+name = "{{ account.name }}"
+contacts = [
+    {% for mailto in account.contacts%}
+    { mailto = "{{ mailto }}" },
+    {% endfor -%}
+]
+{% if account.env is defined %}
+env = "{{ account.env }}"
+{% endif -%}
+{% if account.signature_algorithm is defined %}
+signature_algorithm = "{{ account.signature_algorithm }}"
+{% endif -%}
+{% if account.key_type is defined %}
+key_type = "{{ account.key_type }}"
+{% endif -%}
+{% endfor -%}

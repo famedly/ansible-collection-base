@@ -1,0 +1,11 @@
+---
+
+acmed_container_volumes_base:
+  - "{{ acmed_base_path }}:/opt/acmed:Z"
+acmed_container_volumes_merged: "{{ acmed_container_volumes_base + acmed_container_volumes }}"
+
+acmed_container_labels_base:
+  version: "{{ acmed_version }}"
+acmed_container_labels_merged: >-
+  {{ acmed_container_labels_base
+  | combine(acmed_container_labels | default({})) }}

@@ -1,0 +1,34 @@
+{% for hook in acmed_hooks%}
+
+[[hooks]]
+name = "{{ hook.name }}"
+{% if hook.allow_failure is defined %}
+allow_failure = "{{ hook.allow_failure }}"
+{% endif -%}
+type = [
+{% for t in hook.types %}
+    "{{ t }}",
+{% endfor -%}
+]
+cmd = "{{ hook.cmd }}"
+{% if hook.args %}
+args = [
+{% for arg in hook.args %}
+    "{{ arg }}",
+{% endfor -%}
+]
+{% endif -%}
+{% if hook.stderr is defined %}
+stderr = "{{ hook.stderr }}"
+{% endif -%}
+{% if hook.stdin is defined %}
+stdin = "{{ hook.stdin }}"
+{% endif -%}
+{% if hook.stdin_str is defined %}
+stdin_str = "{{ hook.stdin_str }}"
+{% endif -%}
+{% if hook.stdout is defined %}
+stdout = "{{ hook.stdout }}"
+{% endif -%}
+
+{% endfor -%}

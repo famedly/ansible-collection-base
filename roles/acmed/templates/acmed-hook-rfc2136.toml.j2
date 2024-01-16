@@ -1,0 +1,10 @@
+resolver = "{{ acmed_hook_rfc2136_resolver }}"
+
+{% for zone in acmed_hook_rfc2136_zones %}
+[zones."{{ zone.name }}"]
+primary_ns = "{{ zone.primary_ns }}"
+tsig_name = "{{ zone.tsig_name }}"
+tsig_key = "{{ zone.tsig_key }}"
+tsig_algorithm = "{{ zone.tsig_algorithm }}"
+
+{% endfor -%}

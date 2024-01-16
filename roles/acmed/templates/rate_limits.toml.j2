@@ -1,0 +1,6 @@
+{% for rl in acmed_rate_limits %}
+[[rate-limit]]
+name = "{{ rl.name }}"
+number = "{{ rl.number }}"
+period = "{{ rl.period }}"
+{% endfor -%}

@@ -1,0 +1,45 @@
+---
+
+- name: "Configure acmed global defaults"
+  ansible.builtin.template:
+    src: global.toml.j2
+    dest: "{{ acmed_config_global_file }}"
+    mode: "0640"
+
+- name: "Configure acme accounts"
+  ansible.builtin.template:
+    src: accounts.toml.j2
+    dest: "{{ acmed_config_accounts_file }}"
+    mode: "0640"
+
+- name: "Configure acme providers (endpoints)"
+  ansible.builtin.template:
+    src: endpoints.toml.j2
+    dest: "{{ acmed_config_endpoints_file }}"
+    mode: "0640"
+
+- name: "Configure rate limits"
+  ansible.builtin.template:
+    src: rate_limits.toml.j2
+    dest: "{{ acmed_config_rate_limits_file }}"
+    mode: "0640"
+  when: acmed_rate_limits is defined
+
+- name: "Configure hooks"
+  ansible.builtin.template:
+    src: hooks.toml.j2
+    dest: "{{ acmed_config_hooks_file }}"
+    mode: "0640"
+  when: acmed_hooks is defined
+
+- name: "Import all other configuration files"
+  ansible.builtin.template:
+    src: glue.toml.j2
+    dest: "{{ acmed_config_file }}"
+    mode: "0640"
+
+- name: "Configure acmed-hook-rfc2136"
+  ansible.builtin.template:
+    src: acmed-hook-rfc2136.toml.j2
+    dest: "{{ acmed_hook_rfc2136_config_file }}"
+    mode: "0640"

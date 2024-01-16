@@ -1,0 +1,21 @@
+
+{% for endpoint in acmed_endpoints %}
+[[endpoint]]
+name = "{{ endpoint.name }}"
+url = "{{ endpoint.url }}"
+tos_agreed = "{{ endpoint.tos_agreed }}"
+{% if endpoint.random_early_renew is defined %}
+random_early_renew = "{{ endpoint.random_early_renew }}"
+{% endif -%}
+{% if endpoint.renew_delay is defined %}
+renew_delay = "{{ endpoint.renew_delay }}"
+{% endif -%}
+{% if endpoint.rate_limits is defined %}
+rate_limits = [
+{% for x in endpoint.rate_limits %}
+    "{{ x }}",
+{% endfor -%}
+]
+{% endif -%}
+
+{% endfor -%}
