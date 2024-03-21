@@ -1,0 +1,91 @@
+---
+acmed_base_path: "/opt/acmed"
+acmed_user: "acmed"
+acmed_version: "v0.22.2-r1"
+
+acmed_accounts: "{{ [ acmed_derived_account ] }}"
+acmed_derived_account:
+  name: "{{ acmed_account_name }}"
+  contacts:
+    - "{{ acmed_account_mailto }}"
+
+acmed_default_account: "{{ acmed_acconts[0]['name'] }}"
+acmed_default_endpoint: "le_prod"
+acmed_default_hooks: "{{ acmed_pre_packaged_hooks }}"
+
+acmed_pre_packaged_hooks: "{{ ['dns-01-rfc2136', 'ssh-send'] }}"
+
+acmed_allowed_hooks: "{{ acmed_hooks | map(attribute=name) | combine(acmed_pre_packaged_hooks) }}"
+
+acmed_default_cert:
+  endpoint: "{{ acmed_default_endpoint }}"
+  account: "{{ acmed_default_account }}"
+  hooks: "{{ acmed_default_hooks }}"
+
+acmed_cert_file_group: "{{ acmed_user_registered.group }}"
+acmed_cert_file_user: "{{ acmed_user_registered.uid }}"
+acmed_cert_file_mode: "0644"
+acmed_pk_file_group: "{{ acmed_user_registered.group }}"
+acmed_pk_file_user: "{{ acmed_user_registered.uid }}"
+acmed_pk_file_mode: "0640"
+
+acmed_global_env:
+  HOOK_SSH_USER: "{{ acmed_hook_ssh_user }}"
+  HOOK_RFC2136_CONFIG_FILE: "{{ acmed_hook_rfc2136_config_file }}"
+
+acmed_endpoints: "{{ [ acmed_endpoint_le_prod, acmed_endpoint_le_staging] }}"
+acmed_endpoint_le_prod:
+  name: "le_prod"
+  url: "https://acme-v02.api.letsencrypt.org/directory"
+  tos_agreed: true
+  renew_delay: "4w"
+  random_early_renew: "2w"
+acmed_endpoint_le_staging:
+  name: "le_staging"
+  url: "https://acme-staging-v02.api.letsencrypt.org/directory"
+  tos_agreed: true
+  renew_delay: "1w"
+  random_early_renew: "5d"
+
+acmed_config_path: "{{ acmed_base_path }}/config"
+acmed_state_path: "{{ acmed_base_path }}/state"
+
+acmed_state_account_directory: "{{ acmed_state_path }}/accounts"
+acmed_state_certificates_directory: "{{ acmed_state_path }}/certificates"
+
+acmed_config_file: "{{ acmed_config_path }}/acmed.toml"
+acmed_config_global_file: "{{ acmed_config_path }}/global.toml"
+acmed_config_endpoints_file: "{{ acmed_config_path }}/endpoints.toml"
+acmed_config_accounts_file: "{{ acmed_config_path }}/acccounts.toml"
+acmed_config_rate_limits_file: "{{ acmed_config_path }}/rate_limits.toml"
+acmed_config_hooks_file: "{{ acmed_config_path }}/hooks.toml"
+acmed_config_certificates_directory: "{{ acmed_config_path }}/certificates"
+
+acmed_hook_rfc2136_config_file: "{{ acmed_config_path }}/acmed_hook_rfc2136.toml"
+
+acmed_container_name: "acmed"
+acmed_container_env: {}
+acmed_container_ports: []
+acmed_container_labels: {}
+acmed_container_volumes: []
+acmed_container_restart_policy: "unless-stopped"
+acmed_container_force_pull: false
+
+acmed_container_image_reference: >-
+  {{
+    acmed_container_image_repository
+    + ":"
+    + acmed_container_image_tag | default(acmed_version)
+  }}
+acmed_container_image_repository: >-
+  {{
+    (
+      container_registries[acmed_container_image_registry]
+      | default(acmed_container_image_registry)
+    )
+    + "/"
+    + acmed_container_image_namespace | default("")
+    + acmed_container_image_name
+  }}
+acmed_container_image_registry: "docker-oss.nexus.famedly.de"
+acmed_container_image_name: "acmed"

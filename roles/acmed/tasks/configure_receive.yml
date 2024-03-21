@@ -1,0 +1,30 @@
+
+- name: "Ensure acmed receive user is present"
+  ansible.builtin.user:
+    name: "{{ acmed_receive_user }}"
+    groups:
+      - "{{ acmed_receive_group }}"
+    state: "present"
+    system: true
+  register: "acmed_receive_user_registered"
+  tags: ["prepare", "prepare-acmed-receive"]
+
+- name: "Ensure certificate directory is present"
+  ansible.builtin.file:
+    path: "{{ acmed_receive_path }}"
+    state: "directory"
+    owner: "{{ acmed_receive_user_registered.uid }}"
+    group: "{{ acmed_receive_group }}"
+    mode: "0755"
+  tags: ["prepare", "prepare-acmed-receive"]
+
+- name: "Configure receive side of acmed-hook-ssh"
+  ansible.builtin.template:
+    src:
+    dest:
+    mode:
+  vars:
+    config: "{{ acmed_receive_config }}"
+  tags: ["prepare", "prepare-acmed-receive"]
+
+- name: Install Package

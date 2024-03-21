@@ -1,0 +1,13 @@
+include = [
+        "{{ acmed_config_global_file }}",
+        "{{ acmed_config_endpoints_file }}",
+        "{{ acmed_config_accounts_file }}",
+        {% if acmed_rate_limits is defined %}
+        "{{ acmed_config_rate_limits_file }}",
+        {% endif -%}
+        {% if acmed_extra_config_file is defined %}
+        "{{ acmed_extra_config_file }}",
+        {% endif -%}
+        "{{ acmed_config_certificates_directory }}/*.toml",
+]
+
