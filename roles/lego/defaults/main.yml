@@ -7,7 +7,13 @@ lego_certificate_store_mode: "0750"
 lego_systemd_path: "/etc/systemd/system"
 lego_version: "4.15.0"
 lego_system_type: "linux"
-lego_system_arch: "amd64"
+lego_system_arch: >-2
+  {{
+    'amd64' if ansible_architecture == 'x86_64' else
+    'arm64' if ansible_architecture == 'aarch64' else
+    ansible_architecture
+  }}
+
 lego_executable: "{{ lego_base_path }}/lego"
 lego_account_base_path: "{{ lego_base_path }}/accounts"
 lego_cap_net_bind_service: true
