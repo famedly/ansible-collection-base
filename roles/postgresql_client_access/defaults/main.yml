@@ -5,3 +5,4 @@ postgresql_config_path: "{{ postgresql_base_path }}/config"
 postgresql_connect_socket: true
 
 postgresql_container_name: "postgresql"
+postgresql_client_state: present
