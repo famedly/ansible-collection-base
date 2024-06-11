@@ -1,5 +1,8 @@
 ---
+# ARE YOU **SURE** YOU WANT TO BUMP THIS VERSION?
 redis_version: "7.2.4"
+redis_allow_non_foss_yes_really: false
+
 redis_user: "{{ redis_prefix }}redis"
 redis_basepath: "/opt/redis"
 redis_data_dir: "{{ redis_basepath }}/{{ redis_prefix }}data"
