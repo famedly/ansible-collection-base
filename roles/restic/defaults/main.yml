@@ -11,6 +11,8 @@ restic_backup_paths: []
 restic_backup_commands: []
 restic_backup_parameters: {}
 
+restic_stale_unlock: true
+
 restic_systemd_user: root
 restic_systemd_unit_name: "restic"
 restic_systemd_service_name: "{{ restic_systemd_unit_name }}.service"

@@ -35,6 +35,9 @@ ExecStart={{ restic_binary }} backup {{ restic_backup_paths | join(' ') }}{% if 
 {% endif %}
 
 ExecStartPost=-{{ restic_binary }} snapshots
+{% if restic_stale_unlock -%}
+ExecStartPost={{ restic_binary }} unlock
+{% endif -%}
 ExecStartPost={{ restic_binary }} check
 
 [Install]
