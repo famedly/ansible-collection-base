@@ -1,0 +1,38 @@
+---
+
+- name: "Ensure certificate is configured"
+  vars:
+    cert: >-2
+      {{
+        acmed_certificate |
+        ansible.builtin.combine(
+          acmed_default_cert,
+          list_merge=keep,
+          recursive=true,
+         )
+      }}
+    cert_path: "{{ acmed_certificate.path | default(acmed_certificate.identifiers[0].dns + '.toml') }}"
+    cert_state: "{{ cert.state | default("present") }}"
+  notify:
+    - acmed_reload_config
+  block:
+    - name: "Assert endpoint and account are known and configured"
+      ansible.builtin.assert:
+        that:
+          - "{{ cert.endpoint in acmed_endpoints | map(attribute='name') }}"
+          - "{{ cert.account in acmed_accounts | map(attribute='name') }}"
+          - "{{ cert.hooks in acmed_allowed_hooks }}"
+      when: cert_state == "present"
+
+    - name: "Configure acme cert"
+      ansible.builtin.template:
+        src: certificate.toml.j2
+        dest: "{{ cert_path }}"
+        mode: "0640"
+      when: cert_state == "present"
+
+    - name: "Remove acme cert"
+      ansible.builtin.file:
+        path: "{{ cert_path }}"
+        state: absent
+      when: cert_state == "absent"

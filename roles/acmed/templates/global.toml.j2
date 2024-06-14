@@ -1,0 +1,16 @@
+[[global]]
+account_directory = "{{ acmed_state_account_directory }}"
+certificates_directory = "{{ acmed_state_certificates_directory }}"
+cert_file_group = "{{ acmed_cert_file_group}}"
+cert_file_mode = "{{ acmed_cert_file_mode }}"
+cert_file_user = "{{ acmed_cert_file_user }}"
+pk_file_group = "{{ acmed_pk_file_group }}"
+pk_file_mode = "{{ acmed_pk_file_mode }}"
+pk_file_user = "{{ acmed_pk_file_user }}"
+{% if acmed_global_env is defined %}
+env = {
+    {% for e in acmed_global_env | ansible.builtin.dict2items %}
+    "{{ e.key }}" = "{{ e.value }}",
+    {% endfor -%}
+}
+{% endif -%}

@@ -1,0 +1,54 @@
+[[certificate]]
+account = "{{ cert.account }}"
+endpoint = "{{ cert.endpoint }}"
+hooks = [
+    {% for hook in cert.hooks %}
+    "{{ hook }}",
+    {% endfor -%}
+]
+{% if cert.csr_digest is defined %}
+csr_digest = "{{ cert.csr_digest }}"
+{% endif -%}
+{% if cert.directory is defined %}
+directory = "{{ cert.directory }}"
+{% endif -%}
+{% if cert.env is defined %}
+env = {
+    {% for e in certs.env | ansible.builtin.dict2items %}
+    "{{ e.key }}" = "{{ e.value }}",
+    {% endfor -%}
+}
+{% endif -%}
+identifiers = [
+    {% for id in cert.identifiers %}
+    {
+        challenge = "{{ id.challenge }}"
+        {% if id.dns is defined %}
+        dns = "{{ id.dns }}"
+        {% endif -%}
+        {% if id.ip is defined %}
+        ip = "{{ id.ip }}"
+        {% endif -%}
+        {% if id.env is defined %}
+        env = "{{ id.env }}"
+        {% endif -%}
+    },
+    {% endfor -%}
+]
+{% if cert.key_type is defined %}
+key_type = "{{ cert.key_type }}"
+{% endif -%}
+kp_reuse = "{{ cert.reuse_private_key | default(false)}}"
+{% if cert.random_early_renew is defined%}
+random_early_renew = "{{ cert.random_early_renew }}"
+{% endif -%}
+{% if cert.renew_delay is defined %}
+renew_delay = "{{ cert.renew_delay }}"
+{% endif -%}
+{% if subject_attributes is defined%}
+subject_attributes = {
+    {% for e in certs.subject_attributes | ansible.builtin.dict2items %}
+    "{{ e.key }}" = "{{ e.value }}",
+    {% endfor -%}
+}
+{% endif -%}
