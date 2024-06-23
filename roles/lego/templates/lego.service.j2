@@ -24,7 +24,15 @@ ExecStartPost=+-/bin/sh -c 'chmod 0640 {{ lego_certificate_store }}/*'
 ExecStartPost=+-/usr/bin/python3 {{ lego_base_path }}/metrics-textfile.py
 {% endif %}
 {% if lego_post_renewal_script is defined %}
+{# see https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_tests.html#type-tests #}
+{# list is not string or mapping but iterable #}
+{% if lego_post_renewal_script is not string and lego_post_renewal_script is not mapping and lego_post_renewal_script is iterable and lego_post_renewal_script | length > 0 %}
+{% for hook in lego_post_renewal_script %}
+ExecStartPost=+-{{ hook }}
+{% endfor %}
+{% else %}
 ExecStartPost=+-{{ lego_post_renewal_script }}
+{% endif %}
 {% endif %}
 
 [Install]
