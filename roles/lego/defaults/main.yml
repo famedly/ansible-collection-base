@@ -60,6 +60,7 @@ lego_letsencrypt_environment: "staging"
 
 lego_challenge:
   type: "http"
+lego_challenge_http_port: 80
 
 lego_letsencrypt_servers:
   prod: "https://acme-v02.api.letsencrypt.org/directory"

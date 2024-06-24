@@ -2,9 +2,16 @@
 lego_challenge_mergeable:
   command_parameters:
     global: "{'{{ lego_challenge.type }}': '{{ lego_challenge.provider | default('') }}'}"
-lego_configuration_merged: >-
-  {{ lego_configuration_defaults | combine(lego_challenge_mergeable, recursive=True)
-  | combine(lego_configuration | default({}), recursive=True) }}
+lego_challenge_http_mergeable:
+  command_parameters:
+    global: "{'http.port': ':{{ lego_challenge_http_port }}'}"
+lego_configuration_merged: >-2
+  {{
+    lego_configuration_defaults
+    | combine(lego_challenge_mergeable, recursive=True)
+    | combine(lego_challenge_http_mergeable  if lego_challenge.type == 'http' else {}, recursive=True)
+    | combine(lego_configuration | default({}), recursive=True)
+  }}
 
 # Build global command
 lego_command_domains: >-2
