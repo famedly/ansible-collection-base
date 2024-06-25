@@ -28,8 +28,8 @@ restic_systemd_timer_description: >-
   Run {{ restic_systemd_unit_name }}.service on schedule
 
 restic_default_environment:
-  RESTIC_REPOSITORY: "{{ restic_repository }}"
-  RESTIC_PASSWORD: "{{ restic_password }}"
+  RESTIC_REPOSITORY: "{{ restic_repository | mandatory }}"
+  RESTIC_PASSWORD: "{{ restic_password | mandatory }}"
 restic_environment: {}
 restic_systemd_environment: >-2
   {{ restic_default_environment | combine(restic_environment) }}
