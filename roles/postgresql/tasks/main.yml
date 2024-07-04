@@ -8,45 +8,33 @@
   tags: ["prepare", "prepare-postgresql", "deploy", "deploy-postgresql"]
 
 - name: "Check if postgresql_data_path exists"
-  stat:
+  ansible.builtin.stat:
     path: "{{ postgresql_data_path }}"
   register: "stat_postgresql_data_path"
   tags: ["prepare", "prepare-postgresql"]
 
-- name: "Check if postgresql_data_path is empty"
-  find:
-    paths: "{{ postgresql_data_path }}"
-    file_type: "any"
+- name: "Check if PG_VERSION file exists"
+  ansible.builtin.stat:
+    path: "{{ postgresql_data_path }}/PG_VERSION"
   when: "stat_postgresql_data_path.stat.exists"
-  register: "find_postgresql_data_path"
+  register: "stat_postgresql_pg_version"
   tags: ["prepare", "prepare-postgresql"]
 
-- name: "Check if container {{ postgresql_container_name }} already exists on host"
-  community.docker.docker_container_info:
-    name: "{{ postgresql_container_name }}"
-  register: "postgresql_active_container"
-  tags: ["prepare", "prepare-postgresql"]
-
-- name: "Set postgresql_active_container_version"
-  ansible.builtin.set_fact:
-    postgresql_active_container_version: >-2
-      {{
-        postgresql_active_container.container.Config.Env
-        | select('search', '^PG_VERSION=')
-        | first
-        | split('=')
-        | last
-        | string
-      }}
-  when: "postgresql_active_container.exists"
-  tags: ["prepare", "prepare-postgresql"]
-
-- name: "Prevent major version update, use version of existing container instead"
-  ansible.builtin.set_fact:
-    postgresql_container_version: "{{ postgresql_active_container_version }}"
+- name: "Read PG_VERSION file and set postgresql_existing_database_version"
+  ansible.builtin.slurp:
+    path: "{{ postgresql_data_path }}/PG_VERSION"
+  register: "postgresql_existing_database_version"
   when:
-    - "postgresql_active_container.exists"
-    - "(postgresql_container_version | int) != (postgresql_active_container_version | int)"
+    - "stat_postgresql_data_path.stat.exists"
+    - "stat_postgresql_pg_version.stat.exists"
+  tags: ["prepare", "prepare-postgresql"]
+
+- name: "Prevent major version update, use version of existing database instead"
+  ansible.builtin.set_fact:
+    postgresql_container_version: "{{ postgresql_existing_database_version.content | b64decode | int }}"
+  when:
+    - "postgresql_existing_database_version.content is defined"
+    - "(postgresql_container_version | int) != (postgresql_existing_database_version.content | b64decode | int)"
   tags: ["prepare", "prepare-postgresql"]
 
 - name: "Ensure image {{ postgresql_container_image_reference }} is pulled"
@@ -75,12 +63,7 @@
 
 - name: "Initialize"
   include_tasks: "initialize.yml"
-  when: >-
-    (not stat_postgresql_data_path.stat.exists) or (
-      find_postgresql_data_path is defined
-      and
-      find_postgresql_data_path.examined == 0
-    )
+  when: (not stat_postgresql_data_path.stat.exists) or (not stat_postgresql_pg_version.stat.exists)
   tags: ["prepare", "prepare-postgresql"]
 
 - name: "Template fake /etc/passwd for postgres"
