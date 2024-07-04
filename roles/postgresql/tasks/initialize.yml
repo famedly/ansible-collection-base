@@ -13,6 +13,18 @@
     - "{{ postgresql_config_path }}"
   tags: ["prepare", "prepare-postgresql"]
 
+- name: "Scan postgresql_data_path"
+  ansible.builtin.find:
+    paths: "{{ postgresql_data_path }}"
+    file_type: "any"
+  register: "find_postgresql_data_path"
+  tags: ["prepare", "prepare-postgresql"]
+
+- name: "Assert that postgresql_data_path is empty"
+  ansible.builtin.assert:
+    that: find_postgresql_data_path.examined == 0
+    fail_msg: "{{ postgresql_data_path }} is not empty but also does not contain a PG_VERSION file"
+
 - name: "Template fake /etc/passwd for postgres"
   ansible.builtin.template:
     src: "postgresql-passwd.j2"
