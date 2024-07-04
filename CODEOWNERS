@@ -1,10 +1,1 @@
 * @famedly/infrastructure
-
-/roles/dns/ @jdreichmann @famedly/infrastructure
-/roles/hostname/ @jdreichmann @famedly/infrastructure
-/roles/ldap/ @jcgruenhage @jdreichmann @famedly/infrastructure
-/roles/rclone_serve @evlli @lrsksr @famedly/infrastructure
-/roles/redis/ @jdreichmann @famedly/infrastructure
-/roles/ssh/ @jdreichmann @famedly/infrastructure
-/roles/user/ @jcgruenhage @famedly/infrastructure
-
