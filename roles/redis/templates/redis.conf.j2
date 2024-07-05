@@ -790,6 +790,10 @@ acllog-max-len 128
 # AUTH <password> as usually, or more explicitly with AUTH default <password>
 # if they follow the new protocol: both will work.
 
+{% if redis_user and redis_secret %}
+user {{ redis_user }} on +@all ~* >{{ redis_secret }}
+{% endif %}
+
 {% if redis_secret %}
 requirepass {{ redis_secret }}
 {% endif %}
