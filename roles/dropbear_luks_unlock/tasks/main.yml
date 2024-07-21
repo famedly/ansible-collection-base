@@ -4,14 +4,6 @@
     state: "present"
     pkg: "{{ dropbear_luks_required_packages }}"
 
-- name: "Configure `crypttab`"
-  lineinfile:
-    path: "{{ dropbear_crypttab_path }}"
-    regex: "^(.*) (luks,discard)$"
-    line: "\\1 luks,initramfs"
-    state: "present"
-    backrefs: true
-
 - name: "Configure SSH options for dropbear"
   lineinfile:
     path: "{{ dropbear_initramfs_config_path }}"
