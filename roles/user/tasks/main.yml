@@ -23,8 +23,13 @@
   tags: ['deploy', 'deploy-users']
 
 - name: "Template sudoers.d managed file"
-  ansible.builtin.template:
-    src: "sudoers.j2"
+  ansible.builtin.copy:
+    content: |
+      {% for name, attrs in users.items() %}
+      {% if attrs.root | default(false) and attrs.active | default(false) %}
+      {{ name }} ALL=(ALL) NOPASSWD:ALL
+      {% endif %}
+      {% endfor %}
     dest: "/etc/sudoers.d/{{ users_sudo_namespace }}"
     owner: "root"
     mode: "0440"
