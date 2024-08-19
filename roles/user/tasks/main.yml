@@ -1,6 +1,6 @@
 ---
 - name: "Ensure sudo is installed"
-  package:
+  ansible.builtin.package:
     name: "sudo"
     state: "present"
   register: "task_result"
@@ -15,7 +15,7 @@
   tags: ['deploy', 'deploy-users']
 
 - name: "Loop over users and include per-user tasks"
-  include_tasks: "user.yml"
+  ansible.builtin.include_tasks: "user.yml"
   loop: "{{ users | dict2items(key_name='name', value_name='attrs') }}"
   loop_control:
     loop_var: "user"
@@ -23,7 +23,7 @@
   tags: ['deploy', 'deploy-users']
 
 - name: "Template sudoers.d managed file"
-  template:
+  ansible.builtin.template:
     src: "sudoers.j2"
     dest: "/etc/sudoers.d/{{ users_sudo_namespace }}"
     owner: "root"

@@ -1,3 +1,3 @@
 ---
-users_sudo_namespace: "ansible-managed"
-users: []
+users_sudo_namespace: "ansible-managed" # noqa: var-naming[no-role-prefix]
+users: [] # noqa: var-naming[no-role-prefix]
