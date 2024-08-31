@@ -12,3 +12,13 @@
     state: "reloaded"
   when: "ansible_service_mgr == 'runit'"
   listen: "reload sshd"
+
+- name: "Restart sshd using dinit"
+  ansible.builtin.command:
+    argv:
+      - dinitctl
+      - --system
+      - restart
+      - sshd
+  when: ansible_os_family in ["Chimera"]
+  listen: "reload sshd"
