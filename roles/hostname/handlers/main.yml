@@ -3,3 +3,9 @@
     cmd: "hostnamectl set-hostname {{ hostname_fqdn }}"
   when: ansible_os_family in ["Debian"]
   listen: "set-hostname"
+
+- name: "Set hostname via hostname to avoid a reboot"
+  command:
+    cmd: "hostname {{ hostname_fqdn }}"
+  when: ansible_os_family in ["Chimera"]
+  listen: "set-hostname"
