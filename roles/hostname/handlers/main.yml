@@ -1,0 +1,5 @@
+- name: "Set hostname via hostnamectl to avoid a reboot"
+  command:
+    cmd: "hostnamectl set-hostname {{ hostname_fqdn }}"
+  when: ansible_os_family in ["Debian"]
+  listen: "set-hostname"

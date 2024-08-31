@@ -8,6 +8,7 @@
     content: |
       {{ hostname_fqdn }}
   tags: ["deploy", "deploy-hostname"]
+  notify: "set-hostname"
 
 - name: "Ensure /etc/hosts contains all hostnames and aliases of the server"
   blockinfile:
@@ -20,22 +21,4 @@
       {{ host.ip }}	{{ host.fqdn }}		{{ host.alias | default([]) | join(" ") }}
       {% endfor %}
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
-  tags: ["deploy", "deploy-hostname"]
-
-# Needed because ansibles `ansible_fqdn` is loaded
-# from /etc/hostname, not from the running hostname
-- name: "Query current hostname"
-  command:
-    cmd: "hostname"
-  changed_when: false
-  check_mode: false
-  register: "current_hostname"
-  tags: ["deploy", "deploy-hostname"]
-
-- name: "Set hostname via hostnamectl to avoid a reboot"
-  command:
-    cmd: "hostnamectl set-hostname {{ hostname_fqdn }}"
-  when: "hostname_fqdn != hostname_current"
-  vars:
-    hostname_current: "{{ current_hostname.stdout }}."
   tags: ["deploy", "deploy-hostname"]
