@@ -6,7 +6,7 @@ postgresql_socket_path: "{{ postgresql_base_path }}/sockets"
 postgresql_config_path: "{{ postgresql_base_path }}/config"
 postgresql_connect_socket: true
 
-postgresql_container_version: "16.3"
+postgresql_container_version: "16.4"
 postgresql_container_distro: "alpine"
 
 postgresql_container_image_reference: >-
