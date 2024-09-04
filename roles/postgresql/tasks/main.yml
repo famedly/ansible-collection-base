@@ -169,6 +169,16 @@
   loop: "{{ postgresql_global_config_options }}"
   tags: ["deploy", "deploy-postgresql"]
 
+# Always reloads the postgres configuration options, because the task below
+# ("Check and notify handler if restart is required") only fires if changes
+# really need a RESTART, not a RELOAD
+- name: "Reload postgresql configuration"
+  community.postgresql.postgresql_query:
+    query: "SELECT pg_reload_conf()"
+    login_host: "{{ postgresql_connection.login_host }}"
+    login_port: "{{ postgresql_connection.login_port }}"
+    login_password: "{{ postgresql_connection.login_password }}"
+
 # The above task sets global options, but only some of them require a restart
 # The below task notifies the restart handler only in these cases, preventing unnecessary downtime
 - name: "Check and notify handler if restart is required"
