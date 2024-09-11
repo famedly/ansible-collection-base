@@ -12,6 +12,9 @@ Environment={{ item.key }}={{ item.value }}
 {% endfor %}
 
 ExecStartPre=-/bin/sh -c '{{ restic_binary }} snapshots || {{ restic_binary }} init'
+{% if restic_stale_unlock -%}
+ExecStartPre={{ restic_binary }} unlock
+{% endif -%}
 {% for commands in restic_backup_commands %}
 ExecStart=/bin/sh -c '{{ commands.command }} | {{ restic_binary }} backup --verbose --stdin --stdin-filename {{ commands.filename }}'
 {% endfor %}
@@ -35,9 +38,6 @@ ExecStart={{ restic_binary }} backup {{ restic_backup_paths | join(' ') }}{% if 
 {% endif %}
 
 ExecStartPost=-{{ restic_binary }} snapshots
-{% if restic_stale_unlock -%}
-ExecStartPost={{ restic_binary }} unlock
-{% endif -%}
 ExecStartPost={{ restic_binary }} check
 
 [Install]
