@@ -5,33 +5,39 @@
   register: "postgresql_container"
   tags: ["deploy", "deploy-postgresql-client-access"]
 
-- name: "Ensure users are either present or absent"
+- name: "Ensure users are present"
   community.postgresql.postgresql_user:
     name: "{{ item.name }}"
-    password: "{{ (item.state | default(postgresql_client_state) == 'present') | ternary(item.password, omit) }}"
-    state: "{{ item.state | default(postgresql_client_state) }}"
+    password: "{{ item.password }}"
+    state: "present"
     login_host: "{{ postgresql_connection.login_host }}"
     login_port: "{{ postgresql_connection.login_port }}"
     login_password: "{{ postgresql_connection.login_password | default(omit) }}"
   loop: "{{ postgresql_client_access_users }}"
   loop_control:
-    label: "{{ item.name }} ({{ item.state | default(postgresql_client_state) }})"
+    label: "{{ item.name }}"
+  vars:
+    item_state: "{{ item.state | default(postgresql_client_access_state) }}"
+  when: "item_state == 'present'"
   tags: ["deploy", "deploy-postgresql-client-access"]
 
-- name: "Ensure databases are either present or absent"
+- name: "Ensure databases are present"
   community.postgresql.postgresql_db:
     name: "{{ item.name }}"
     owner: "{{ item.owner | default(omit) }}"
     lc_collate: "{{ item.lc_collate | default('C') }}"
     lc_ctype: "{{ item.lc_ctype | default('C') }}"
     template: "{{ item.template | default('template0') }}"
-    state: "{{ item.state | default(postgresql_client_state) }}"
+    state: "present"
     login_host: "{{ postgresql_connection.login_host }}"
     login_port: "{{ postgresql_connection.login_port }}"
     login_password: "{{ postgresql_connection.login_password | default(omit) }}"
   loop: "{{ postgresql_client_access_databases }}"
   loop_control:
-    label: "{{ item.name }} ({{ item.state | default(postgresql_client_state) }})"
+    label: "{{ item.name }}"
+  vars:
+    item_state: "{{ item.state | default(postgresql_client_access_state) }}"
+  when: "item_state == 'present'"
   tags: ["deploy", "deploy-postgresql-client-access"]
 
 - name: "Ensure pg_hba.conf is up to date"
@@ -44,9 +50,41 @@
     options: "{{ item.options | default(omit) }}"
     address: "{{ item.address | default(omit) }}"
     netmask: "{{ item.netmask | default(omit) }}"
-    state: "{{ item.state | default(postgresql_client_state) }}"
+    state: "{{ item_state }}"
   loop: "{{ postgresql_client_access_hba_entries }}"
+  vars:
+    item_state: "{{ item.state | default(postgresql_client_access_state) }}"
   notify: "postgresql_container_restart"
+  tags: ["deploy", "deploy-postgresql-client-access"]
+
+- name: "Ensure databases are absent"
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    state: "absent"
+    login_host: "{{ postgresql_connection.login_host }}"
+    login_port: "{{ postgresql_connection.login_port }}"
+    login_password: "{{ postgresql_connection.login_password | default(omit) }}"
+  loop: "{{ postgresql_client_access_databases }}"
+  loop_control:
+    label: "{{ item.name }}"
+  vars:
+    item_state: "{{ item.state | default(postgresql_client_access_state) }}"
+  when: "item_state == 'absent'"
+  tags: ["deploy", "deploy-postgresql-client-access"]
+
+- name: "Ensure users are absent"
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    state: "absent"
+    login_host: "{{ postgresql_connection.login_host }}"
+    login_port: "{{ postgresql_connection.login_port }}"
+    login_password: "{{ postgresql_connection.login_password | default(omit) }}"
+  loop: "{{ postgresql_client_access_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  vars:
+    item_state: "{{ item.state | default(postgresql_client_access_state) }}"
+  when: "item_state == 'absent'"
   tags: ["deploy", "deploy-postgresql-client-access"]
 
 - name: "Flush handlers to ensure pg_hba updates are propagated in time"
