@@ -1,0 +1,34 @@
+---
+- name: "Install resolved"
+  ansible.builtin.package:
+    name: "systemd-resolved"
+
+- name: "Configure DNS server"
+  ansible.builtin.lineinfile:
+    path: "/etc/systemd/resolved.conf"
+    regexp: "^#?DNS="
+    insertafter: "[Resolve]"
+    line: "DNS={{ systemd_resolved_dns_servers | join(' ') }}"
+  notify: "restart resolved"
+
+- name: "Enable DNSSEC"
+  ansible.builtin.lineinfile:
+    path: "/etc/systemd/resolved.conf"
+    regexp: "^#?DNSSEC="
+    insertafter: "[Resolve]"
+    line: "DNSSEC=yes"
+  notify: "restart resolved"
+
+- name: "Enable resolved"
+  ansible.builtin.systemd:
+    name: "systemd-resolved"
+    masked: false
+    enabled: true
+    state: "started"
+
+- name: "Use resolved"
+  ansible.builtin.file:
+    src: "/run/systemd/resolve/stub-resolv.conf"
+    dest: "/etc/resolv.conf"
+    state: "link"
+    force: true

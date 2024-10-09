@@ -1,0 +1,6 @@
+---
+- name: "Switch to systemd_resolved"
+  hosts: "{{ systemd_resolved_hosts | default('systemd_resolved') }}"
+  become: true
+  roles:
+    - role: "systemd_resolved"
