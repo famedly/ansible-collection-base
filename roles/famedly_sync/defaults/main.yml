@@ -1,0 +1,30 @@
+famedly_sync_path: /opt/famedly-sync
+
+famedly_sync_container_image_force_pull: "{{ famedly_sync_container_image_tag is defined }}"
+
+famedly_sync_version: "0.6.0"
+
+famedly_sync_container_image_reference: >-
+  {{
+    famedly_sync_container_image_repository
+    + ':'
+    + famedly_sync_container_image_tag | default('v' + famedly_sync_version)
+  }}
+famedly_sync_container_image_repository: >-
+  {{
+    (
+      container_registries[famedly_sync_container_image_registry]
+      | default(famedly_sync_container_image_registry)
+    )
+    + '/'
+    + famedly_sync_container_image_namespace | default('')
+    + famedly_sync_container_image_name
+  }}
+famedly_sync_container_image_registry: "docker-oss.nexus.famedly.de"
+famedly_sync_container_image_name: "famedly-sync-agent"
+
+famedly_sync_docker_networks:
+  - name: host
+
+famedly_sync_docker_volumes:
+  - "{{ famedly_sync_path }}:/opt/famedly-sync:rw"

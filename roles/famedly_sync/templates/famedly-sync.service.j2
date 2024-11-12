@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync users from LDAP to Zitadel
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker start -a famedly-sync

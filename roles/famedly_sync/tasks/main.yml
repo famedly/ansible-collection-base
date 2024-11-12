@@ -1,0 +1,55 @@
+---
+
+- name: "Assert config is defined"
+  ansible.builtin.assert:
+    that: "famedly_sync_config is defined"
+    fail_msg: "famedly_sync_config needs to be defined per host"
+
+- name: "Create volume path"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+    mode: "0700"
+  loop:
+    - "{{ famedly_sync_path }}"
+
+- name: "Ensure container image is present locally"
+  community.docker.docker_image:
+    name: "{{ famedly_sync_container_image_reference }}"
+    source: "pull"
+    state: "present"
+    force_source: "{{ famedly_sync_container_image_force_pull }}"
+
+- name: "Ensure container is present"
+  community.docker.docker_container:
+    name: famedly-sync
+    image: "{{ famedly_sync_container_image_reference }}"
+    state: "present"
+    volumes: "{{ famedly_sync_docker_volumes }}"
+    labels: "{{ famedly_sync_docker_labels | default(omit, True) }}"
+    networks: "{{ famedly_sync_docker_networks }}"
+
+- name: "Deploy config"
+  ansible.builtin.copy:
+    # famedly_sync_config is defined, because the assertion passed
+    content: "{{ famedly_sync_config | to_nice_yaml(indent=2) }}"  # noqa: jinja[invalid]
+    dest: "{{ famedly_sync_path }}/config.yaml"
+    mode: "0400"
+
+- name: "Install systemd units"
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "restart famedly-sync.timer"
+  loop:
+    - famedly-sync.service
+    - famedly-sync.timer
+
+- name: "Enable famedly-sync.timer"
+  ansible.builtin.systemd:
+    name: famedly-sync.timer
+    state: started
+    enabled: true
