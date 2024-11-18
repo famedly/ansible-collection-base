@@ -1,0 +1,6 @@
+---
+- name: "Install and configure famedly-sync"
+  hosts: "{{ famedly_sync_hosts | default('famedly_sync') }}"
+  become: true
+  roles:
+    - role: "famedly_sync"
