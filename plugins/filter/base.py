@@ -26,6 +26,14 @@ def regex_replace(pipe_in, pattern, repl, count=0, require_n=0):
     return result
 
 
+def reject_keys(pipe_in: dict, keys: list):
+    return dict((k, v) for k, v in pipe_in.items() if k not in keys)
+
+
+def select_keys(pipe_in: dict, keys: list):
+    return dict((k, v) for k, v in pipe_in.items() if k in keys)
+
+
 class FilterModule(object):
     xset = set
 
@@ -34,4 +42,6 @@ class FilterModule(object):
             "consensus": consensus,
             "split2multidict": split2multidict,
             "regex_replace": regex_replace,
+            "reject_keys": reject_keys,
+            "select_keys": select_keys,
         }
