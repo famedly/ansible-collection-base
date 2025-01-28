@@ -2,7 +2,7 @@ famedly_sync_path: /opt/famedly-sync
 
 famedly_sync_container_image_force_pull: "{{ famedly_sync_container_image_tag is defined }}"
 
-famedly_sync_version: "0.6.0"
+famedly_sync_version: "0.9.0"
 
 famedly_sync_container_image_reference: >-
   {{
