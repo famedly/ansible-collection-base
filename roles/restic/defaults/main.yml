@@ -20,6 +20,7 @@ restic_systemd_timer_name: "{{ restic_systemd_unit_name }}.timer"
 restic_systemd_unit_file_directory: "/etc/systemd/system"
 restic_systemd_working_directory: "/tmp"
 restic_systemd_syslog_identifier: "{{ restic_systemd_unit_name }}"
+restic_systemd_timeout_secs: 0
 
 restic_systemd_timer_on_calendar: daily
 restic_systemd_timer_randomized_delay_sec: 3600

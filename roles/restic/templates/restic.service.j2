@@ -11,6 +11,10 @@ SyslogIdentifier={{ restic_systemd_syslog_identifier }}
 Environment={{ item.key }}={{ item.value }}
 {% endfor %}
 
+{% if restic_systemd_timeout_secs %}
+TimeoutStartSec={{ restic_systemd_timeout_secs | int }}
+{% endif %}
+
 ExecStartPre=-/bin/sh -c '{{ restic_binary }} snapshots || {{ restic_binary }} init'
 {% if restic_stale_unlock -%}
 ExecStartPre={{ restic_binary }} unlock
