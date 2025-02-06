@@ -1,4 +1,5 @@
 famedly_sync_path: /opt/famedly-sync
+famedly_sync_service_account_file: "{{ famedly_sync_path }}/zitadel-service-account.json"  # Zitadel machine user with role "Org User Manager"
 
 famedly_sync_container_image_force_pull: "{{ famedly_sync_container_image_tag is defined }}"
 

@@ -13,6 +13,14 @@
   loop:
     - "{{ famedly_sync_path }}"
 
+- name: "Ensure zitadel service account is templated"
+  ansible.builtin.copy:
+    content: "{{ famedly_sync_service_account | to_nice_json }}"
+    dest: "{{ famedly_sync_service_account_file }}"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+
 - name: "Ensure container image is present locally"
   community.docker.docker_image:
     name: "{{ famedly_sync_container_image_reference }}"
@@ -55,7 +63,7 @@
     enabled: true
   when: famedly_sync_enable_systemd_timer
 
-- name: "Enable famedly-sync.timer"
+- name: "Disable famedly-sync.timer"
   ansible.builtin.systemd:
     name: famedly-sync.timer
     state: stopped
