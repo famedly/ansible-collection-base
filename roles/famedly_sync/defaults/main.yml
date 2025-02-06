@@ -4,6 +4,8 @@ famedly_sync_container_image_force_pull: "{{ famedly_sync_container_image_tag is
 
 famedly_sync_version: "0.9.0"
 
+famedly_sync_enable_systemd_timer: true
+
 famedly_sync_container_image_reference: >-
   {{
     famedly_sync_container_image_repository

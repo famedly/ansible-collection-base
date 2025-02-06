@@ -53,3 +53,11 @@
     name: famedly-sync.timer
     state: started
     enabled: true
+  when: famedly_sync_enable_systemd_timer
+
+- name: "Enable famedly-sync.timer"
+  ansible.builtin.systemd:
+    name: famedly-sync.timer
+    state: stopped
+    enabled: false
+  when: not famedly_sync_enable_systemd_timer
