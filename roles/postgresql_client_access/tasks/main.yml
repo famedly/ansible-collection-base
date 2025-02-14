@@ -48,7 +48,7 @@
     users: "{{ item.users | default(omit) }}"
     method: "{{ item.method | default(omit) }}"
     options: "{{ item.options | default(omit) }}"
-    address: "{{ item.address | default(omit) }}"
+    address: "{{ item.address | default('') }}"
     netmask: "{{ item.netmask | default(omit) }}"
     state: "{{ item_state }}"
   loop: "{{ postgresql_client_access_hba_entries }}"

@@ -93,6 +93,7 @@
     users: "postgres"
     method: "peer"
     options: "map=root_postgres"
+    address: ""
   tags: ["prepare", "prepare-postgresql"]
 
 - name: "Insert pg_ident.conf header"
