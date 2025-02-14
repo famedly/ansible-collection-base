@@ -60,6 +60,7 @@ _raw:
   type: string
 """
 
+import os, mmap, json, yaml, subprocess
 from ansible.plugins.lookup import LookupBase
 from ansible.module_utils.six import raise_from
 from ansible.module_utils.basic import missing_required_lib
@@ -69,6 +70,12 @@ from ansible_collections.famedly.base.plugins.module_utils.gpg_utils import (
     SecretStore,
     check_secretstore_import_errors,
 )
+
+
+ENTRY_SIZE = 128
+CACHE_ENTRIES = 65536
+NULL_ENTRY = b'\0' * ENTRY_SIZE
+cache = mmap.mmap(-1, ENTRY_SIZE * CACHE_ENTRIES, flags=mmap.MAP_SHARED | mmap.MAP_ANONYMOUS)
 
 
 class LookupModule(LookupBase):
@@ -90,8 +97,33 @@ class LookupModule(LookupBase):
             params = parse_kv(terms[1])
 
         data_type = params.get("_raw_params", params.get("data_type", "plain"))
-        password_store_path = params.get("password_store_path", "~/.password-store/")
+        password_store_path = params.get("password_store_path", "~/.password-store") + "/"
+        cache_entry = hash(password_store_path + terms[0]) % CACHE_ENTRIES
 
-        password_store = SecretStore(password_store_path=password_store_path)
-        result = password_store.get(terms[0], data_type)
-        return [result]
+        cached = cache[ENTRY_SIZE * cache_entry : ENTRY_SIZE * (cache_entry + 1)]
+        if cached != NULL_ENTRY:
+            with open(password_store_path + terms[0] + ".gpg", "r") as f:
+                read_end, write_end = os.pipe()
+                os.write(write_end, cached.rstrip(b'\0'))
+                os.close(write_end)
+                result = subprocess.run(["gpg", "--decrypt", "--override-session-key-fd", f"{read_end}"], stdin=f, pass_fds=[read_end], capture_output=True)
+                os.close(read_end)
+
+        if cached == NULL_ENTRY or result.returncode != 0:
+            with open(password_store_path + terms[0] + ".gpg", "r") as f:
+                result = subprocess.run(["gpg", "--decrypt", "--show-session-key"], stdin=f, capture_output=True)
+
+            NEEDLE = b'gpg: session key: '
+            cached = next(x.removeprefix(NEEDLE) for x in result.stderr.splitlines() if x.startswith(NEEDLE))
+            cached = cached[1:-1]
+            cached += b'\0' * (ENTRY_SIZE - len(cached))
+            cache[ENTRY_SIZE * cache_entry : ENTRY_SIZE * (cache_entry + 1)] = cached
+
+        raw = result.stdout
+
+        if data_type == "plain":
+            return [raw]
+        if data_type == "json":
+            return [json.loads(raw)]
+        if data_type == "yaml":
+            return [yaml.safe_load(raw)]
