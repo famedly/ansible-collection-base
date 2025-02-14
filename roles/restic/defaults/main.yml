@@ -1,6 +1,6 @@
 ---
 
-restic_version: "0.16.2"
+restic_version: "0.17.3"
 restic_job_description: "Run restic backup job"
 restic_binary: "/usr/local/bin/restic"
 
