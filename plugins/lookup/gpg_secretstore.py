@@ -22,6 +22,9 @@ options:
   _terms:
     description: Slug of the secret being read from the store.
     required: True
+  check_recipients:
+    description: If the ciphertexts recipients should be matched against .gpg-id.
+    default: True
   data_type:
     description: If the decrypted data should be interpreted as yaml, json or plain text.
     default: 'plain'
@@ -45,13 +48,19 @@ EXAMPLES = r"""
   debug:
     var: mypassword
   vars:
-    mypassword: "{{ lookup('famedly.base.gpg_secretstore', 'example/yaml', 'data_type=yaml')}}"
+    mypassword: "{{ lookup('famedly.base.gpg_secretstore', 'example/yaml', data_type='yaml')}}"
 
 - name: lookup password from non-default password-store location
   debug:
     var: mypassword
   vars:
-    mypassword: "{{ lookup('famedly.base.gpg_secretstore', 'example/temporary', 'password_store_path=/tmp/temporary-store')}}"
+    mypassword: "{{ lookup('famedly.base.gpg_secretstore', 'example/temporary', password_store_path='/tmp/temporary-store')}}"
+
+- name: lookup password without checking recipients
+  debug:
+    var: mypassword
+  vars:
+    mypassword: "{{ lookup('famedly.base.gpg_secretstore', 'example', check_recipients=False)}}"
 """
 
 RETURN = r"""
@@ -64,7 +73,6 @@ from ansible.plugins.lookup import LookupBase
 from ansible.module_utils.six import raise_from
 from ansible.module_utils.basic import missing_required_lib
 from ansible.errors import AnsibleError
-from ansible.parsing.splitter import parse_kv
 from ansible_collections.famedly.base.plugins.module_utils.gpg_utils import (
     SecretStore,
     check_secretstore_import_errors,
@@ -84,14 +92,12 @@ class LookupModule(LookupBase):
                 "\n".join(traceback),
             )
 
-        if len(terms) == 1:
-            params = {}
-        else:
-            params = parse_kv(terms[1])
-
-        data_type = params.get("_raw_params", params.get("data_type", "plain"))
-        password_store_path = params.get("password_store_path", "~/.password-store/")
+        data_type = kwargs.get("data_type", "plain")
+        password_store_path = kwargs.get("password_store_path", "~/.password-store/")
+        check_recipients = kwargs.get("check_recipients", True)
 
         password_store = SecretStore(password_store_path=password_store_path)
-        result = password_store.get(terms[0], data_type)
+        result = password_store.get(
+            terms[0], data_type, check_recipients=check_recipients
+        )
         return [result]
