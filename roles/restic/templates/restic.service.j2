@@ -15,7 +15,7 @@ Environment={{ item.key }}={{ item.value }}
 TimeoutStartSec={{ restic_systemd_timeout_secs | int }}
 {% endif %}
 
-ExecStartPre=-/bin/sh -c '{{ restic_binary }} snapshots || {{ restic_binary }} init'
+ExecStartPre=-/bin/sh -c '{{ restic_binary }} snapshots --latest 1 || {{ restic_binary }} init'
 {% if restic_stale_unlock -%}
 ExecStartPre={{ restic_binary }} unlock
 {% endif -%}
@@ -41,8 +41,7 @@ ExecStart={{ restic_binary }} backup {{ restic_backup_paths | join(' ') }}{% if 
 {% endif %}
 {% endif %}
 
-ExecStartPost=-{{ restic_binary }} snapshots
-ExecStartPost={{ restic_binary }} check
+ExecStartPost={{ restic_binary }} check --with-cache --cleanup-cache
 
 [Install]
 WantedBy=multi-user.target
