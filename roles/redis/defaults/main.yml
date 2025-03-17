@@ -46,5 +46,4 @@ redis_container_image_force_pull: "{{ redis_container_image_tag is defined }}"
 redis_docker_container_name: "{{ redis_prefix }}redis"
 redis_docker_ports: ["6379:6379"]
 redis_docker_networks: ~
-redis_docker_purge_networks: false
 redis_docker_volumes: ~

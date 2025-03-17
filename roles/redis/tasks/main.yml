@@ -67,7 +67,6 @@
     volumes: "{{ redis_docker_volumes }}"
     labels: "{{ redis_docker_labels_complete }}"
     networks: "{{ redis_docker_networks | default(omit, True) }}"
-    purge_networks: "{{ redis_docker_purge_networks }}"
     entrypoint: "redis-server"
     command: ["{{ redis_docker_configpath }}"]
     healthcheck:
