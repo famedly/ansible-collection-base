@@ -55,4 +55,3 @@
     command: "{{ rclone_serve_container_command }}"
     etc_hosts: "{{ rclone_serve_container_etc_hosts | default(omit) }}"
     networks: "{{ rclone_serve_container_networks | default(omit) }}"
-    purge_networks: "{{ rclone_serve_container_purge_networks | default(omit) }}"
