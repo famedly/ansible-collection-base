@@ -218,6 +218,7 @@
 - name: "Enable lego.service"
   systemd:
     name: "lego.service"
+    state: "started"
     enabled: true
   tags: ["deploy", "deploy-lego"]
 
