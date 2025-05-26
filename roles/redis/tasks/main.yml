@@ -1,9 +1,4 @@
 ---
-- name: "Assure redis version isn't too new"
-  ansible.builtin.assert:
-    that: "'{{ redis_version }}' is version('7.2.4', '<=', version_type='semver')"
-  ignore_errors: "{{ redis_allow_non_foss_yes_really }}"
-
 - name: "Create redis user"
   user:
     name: "{{ redis_user }}"
