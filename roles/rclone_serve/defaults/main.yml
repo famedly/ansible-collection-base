@@ -2,7 +2,7 @@
 
 rclone_serve_role_action: "install"
 
-rclone_serve_version: "1.69.0"
+rclone_serve_version: "1.69.3"
 rclone_serve_user: "rclone"
 rclone_serve_base_path: "/opt/rclone-serve/"
 
