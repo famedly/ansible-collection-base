@@ -4,7 +4,7 @@ ldap_sock_path: "{{ ldap_base_path }}/sock"
 ldap_data_path: "{{ ldap_base_path }}/data"
 ldap_config_path: "{{ ldap_base_path }}/config"
 
-ldap_version: "2.6.6-r1"
+ldap_version: "2.6.8-r0"
 
 ldap_container_image_reference: >-
   {{
