@@ -141,20 +141,22 @@
         group: "{{ lego_user_res.group }}"
       tags: ["deploy", "deploy-lego"]
 
-- name: "Check if certificate is nonexistent or differs from wanted state"
-  block:
-    - name: "Check if certificate file exists"
-      ansible.builtin.stat:
-        path: "{{ lego_certificate_store }}/{{ lego_certificate.domains[0] }}.crt"
-      register: "lego_certificate_stat"
-      changed_when: "not lego_certificate_stat.stat.exists"
-      notify: ["Run lego"]
-      tags: ["deploy", "deploy-lego"]
+- name: "Check if certificate file exists"
+  ansible.builtin.stat:
+    path: "{{ lego_certificate_store }}/{{ lego_certificate.domains[0] }}.crt"
+  register: "lego_certificate_stat"
+  changed_when: "not lego_certificate_stat.stat.exists"
+  notify: ["Run lego"]
+  tags: ["deploy", "deploy-lego"]
 
+- name: "Check if certificate is nonexistent or differs from wanted state"
+  when:
+    - lego_certificate_stat.stat.exists
+    - lego_certificate_stat.stat.size > 0
+  block:
     - name: "Fetch certificate info"
       community.crypto.x509_certificate_info:
         path: "{{ lego_certificate_store }}/{{ lego_certificate.domains[0] }}.crt"
-      when: "lego_certificate_stat.stat.exists"
       register: "lego_certificate_info"
       tags: ["deploy", "deploy-lego"]
 
@@ -163,7 +165,6 @@
       ansible.builtin.set_fact:
         lego_certificate_sans: "{{ lego_certificate_sans | default([]) + [item | regex_replace('^DNS:', '')] }}"
       loop: "{{ lego_certificate_info.subject_alt_name }}"
-      when: "lego_certificate_stat.stat.exists"
       tags: ["deploy", "deploy-lego"]
 
     - name: "Compare SANs, notify handler if they differ"
@@ -173,7 +174,6 @@
             lego_certificate.domains is superset(lego_certificate_sans)
             and lego_certificate.domains is subset(lego_certificate_sans)
           }}
-      when: "lego_certificate_stat.stat.exists"
       changed_when: "not lego_certificate_sans_equal"
       notify: ["Run lego"]
       tags: ["deploy", "deploy-lego"]
@@ -187,10 +187,19 @@
             "ECC" if "ec" in lego_configuration_merged.command_parameters.global["key-type"]
             else "RSA" if "rsa" in lego_configuration_merged.command_parameters.global["key-type"]
           }}
-      when: "lego_certificate_stat.stat.exists"
       changed_when: "lego_certificate_pubkey_type_differs"
       notify: ["Run lego"]
       tags: ["deploy", "deploy-lego"]
+
+- name: "Notify handler if pubkey is empty"
+  ansible.builtin.debug:
+    msg: "pubkey file exists, but is empty"
+  when:
+    - lego_certificate_stat.stat.exists
+    - lego_certificate_stat.stat.size == 0
+  changed_when: true
+  notify: ["Run lego"]
+  tags: ["deploy", "deploy-lego"]
 
 - name: "Ensure systemd unit file for lego is templated"
   template:
