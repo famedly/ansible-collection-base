@@ -2,8 +2,13 @@
 Description=Sync users from LDAP to Zitadel regularly
 
 [Timer]
+{% if nightly_sync %}
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+{% else %}
 OnBootSec=15min
 OnUnitActiveSec=15min
+{% endif %}
 
 [Install]
 WantedBy=timers.target
