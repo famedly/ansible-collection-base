@@ -31,3 +31,5 @@ famedly_sync_docker_networks:
 
 famedly_sync_docker_volumes:
   - "{{ famedly_sync_path }}:/opt/famedly-sync:rw"
+
+famedly_nightly_sync: false

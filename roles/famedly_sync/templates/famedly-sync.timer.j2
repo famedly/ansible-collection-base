@@ -2,7 +2,7 @@
 Description=Sync users from LDAP to Zitadel regularly
 
 [Timer]
-{% if nightly_sync %}
+{% if famedly_nightly_sync %}
 OnCalendar=*-*-* 11:45:00
 RandomizeDelaySec=30m
 {% else %}
