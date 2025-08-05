@@ -5,7 +5,7 @@
 When the ldap container image is updated, one needs to make
 sure the config template is still up-to-date.
 
-To do this, run `docker run --rm docker-oss.nexus.famedly.de/openldap:$VERSION cat /etc/openldap/slapd.ldif > templates/slapd_$VERSION.ldif`
+To do this, run `docker run --rm registry.famedly.net/docker-oss/openldap:$VERSION cat /etc/openldap/slapd.ldif > templates/slapd_$VERSION.ldif`
 and use `diff templates/slapd_$VERSION templates/slapd.ldif.j2`.
 
 When you integrated potential config changes, make sure that the

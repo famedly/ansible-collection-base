@@ -23,7 +23,7 @@ famedly_sync_container_image_repository: >-
     + famedly_sync_container_image_namespace | default('')
     + famedly_sync_container_image_name
   }}
-famedly_sync_container_image_registry: "docker-oss.nexus.famedly.de"
+famedly_sync_container_image_registry: "registry.famedly.net/docker-oss"
 famedly_sync_container_image_name: "famedly-sync-agent"
 
 famedly_sync_docker_networks:
