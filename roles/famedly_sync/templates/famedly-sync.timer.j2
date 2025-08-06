@@ -5,6 +5,8 @@ Description=Sync users from LDAP to Zitadel regularly
 {% if famedly_nightly_sync %}
 OnCalendar=*-*-* 11:45:00
 RandomizeDelaySec=30m
+{% elif famedly_hourly_sync %}
+OnCalendar=hourly
 {% else %}
 OnBootSec=15min
 OnUnitActiveSec=15min
