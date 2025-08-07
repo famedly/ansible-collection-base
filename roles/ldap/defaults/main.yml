@@ -22,7 +22,7 @@ ldap_container_image_repository: >-
     + ldap_container_image_namespace | default('')
     + ldap_container_image_name
   }}
-ldap_container_image_registry: "docker-oss.nexus.famedly.de"
+ldap_container_image_registry: "registry.famedly.net/docker-oss"
 ldap_container_image_namespace: ""
 ldap_container_image_name: "openldap"
 
