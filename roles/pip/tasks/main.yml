@@ -22,5 +22,5 @@
     state: "{{ pip_package_state | default(omit) }}"
     executable: "{{ pip_executable }}"
     extra_args: "{{ pip_executable_extra_args | default(omit) }}"
-  when: "pip_requirements_file"
+  when: "pip_requirements_file is not none"
   environment: "{{ pip_environment_variables }}"
