@@ -6,7 +6,7 @@
     groups: >-
       {{
         omit
-        if user.attrs.groups is not sequence
+        if 'groups' not in user.attrs or user.attrs.groups is not sequence
         else ansible_facts.getent_group | intersect(user.attrs.groups)
       }}
     append: "{{ user.attrs.append | default(omit) }}"
