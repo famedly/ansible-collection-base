@@ -133,7 +133,7 @@
   ansible.builtin.lineinfile:
     <<: *sshd_config_args
     regexp: "^#?KexAlgorithms"
-    line: "KexAlgorithms {{ ssh_preset.allowed_kexalgos | intersect(queried_kex_algorithms.stdout_lines) | sort(reverse=true) | join(',') }}"
+    line: "KexAlgorithms {{ ssh_preset.allowed_kexalgos | famedly.base.intersect(queried_kex_algorithms.stdout_lines) | join(',') }}"
     insertafter: *cipher_after
   when: "ssh_preset.allowed_kexalgos is defined"
   notify: "reload sshd"
@@ -155,7 +155,7 @@
   ansible.builtin.lineinfile:
     <<: *sshd_config_args
     regexp: "^#?Ciphers"
-    line: "Ciphers {{ ssh_preset.allowed_ciphers | intersect(queried_ciphers.stdout_lines) | sort(reverse=true) | join(',') }}"
+    line: "Ciphers {{ ssh_preset.allowed_ciphers | famedly.base.intersect(queried_ciphers.stdout_lines) | join(',') }}"
     insertafter: *cipher_after
   when: "ssh_preset.allowed_ciphers is defined"
   notify: "reload sshd"
@@ -177,7 +177,7 @@
   ansible.builtin.lineinfile:
     <<: *sshd_config_args
     regexp: "^#?MACs"
-    line: "MACs {{ ssh_preset.allowed_macs | intersect(queried_macs.stdout_lines) | sort(reverse=true) | join(',') }}"
+    line: "MACs {{ ssh_preset.allowed_macs | famedly.base.intersect(queried_macs.stdout_lines) | join(',') }}"
     insertafter: *cipher_after
   when: "ssh_preset.allowed_macs is defined"
   notify: "reload sshd"
@@ -199,7 +199,7 @@
   ansible.builtin.lineinfile:
     <<: *sshd_config_args
     regexp: "^#?HostKeyAlgorithms"
-    line: "HostKeyAlgorithms {{ ssh_preset.allowed_hostkey_algos | intersect(queried_hostkey_algos.stdout_lines) | sort(reverse=true) | join(',') }}"
+    line: "HostKeyAlgorithms {{ ssh_preset.allowed_hostkey_algos | famedly.base.intersect(queried_hostkey_algos.stdout_lines) | join(',') }}"
     insertafter: *cipher_after
   when: "ssh_preset.allowed_hostkey_algos is defined"
   notify: "reload sshd"
@@ -221,7 +221,7 @@
   ansible.builtin.lineinfile:
     <<: *sshd_config_args
     regexp: "^#?PubkeyAcceptedKeyTypes"
-    line: "PubkeyAcceptedKeyTypes {{ ssh_preset.allowed_pubkey_algos | intersect(queried_pubkey_algos.stdout_lines) | sort(reverse=true) | join(',') }}"
+    line: "PubkeyAcceptedKeyTypes {{ ssh_preset.allowed_pubkey_algos | famedly.base.intersect(queried_pubkey_algos.stdout_lines) | join(',') }}"
     insertafter: *cipher_after
   when: "ssh_preset.allowed_pubkey_algos is defined"
   notify: "reload sshd"
