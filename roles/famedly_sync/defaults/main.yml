@@ -3,7 +3,7 @@ famedly_sync_service_account_file: "{{ famedly_sync_path }}/zitadel-service-acco
 
 famedly_sync_container_image_force_pull: "{{ famedly_sync_container_image_tag is defined }}"
 
-famedly_sync_version: "0.9.0"
+famedly_sync_version: "0.11.0"
 
 famedly_sync_enable_systemd_timer: true
 
