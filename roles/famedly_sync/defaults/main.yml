@@ -34,4 +34,3 @@ famedly_sync_docker_volumes:
 
 famedly_nightly_sync: false
 famedly_hourly_sync: false
-#just fore test
