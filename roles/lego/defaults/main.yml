@@ -52,7 +52,7 @@ lego_timer_on_boot: ~
 lego_timer_on_calendar: "*-*-* 00,12:00:00"
 lego_timer_interval: ~
 lego_timer_accuracy: ~
-lego_timer_random_delay: 43200
+lego_timer_random_delay: "43200"
 lego_timer_persistent: true
 
 lego_certificate: ~
@@ -99,6 +99,12 @@ lego_dependencies:
   Debian:
     "11":
       - "python3-cryptography"
+    "12":
+      - "python3-cryptography"
+      - "acl"
+    "13":
+      - "python3-cryptography"
+      - "acl"
     all:
       - "python3-cryptography"
       - "acl"

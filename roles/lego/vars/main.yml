@@ -1,16 +1,32 @@
 ---
-lego_challenge_mergeable:
+lego_challenge_dns_mergeable:
   command_parameters:
-    global: "{'{{ lego_challenge.type }}': '{{ lego_challenge.provider | default('') }}'}"
+    global:
+      dns: "{{ lego_challenge.provider }}"
+
 lego_challenge_http_mergeable:
   command_parameters:
-    global: "{'http.port': ':{{ lego_challenge_http_port }}'}"
+    global:
+      http:
+      "http.port": ":{{ lego_challenge_http_port }}"
+
+lego_challenge_tls_mergeable:
+  command_parameters:
+    global:
+      tls:
+  
 lego_configuration_merged: >-2
   {{
-    lego_configuration_defaults
-    | combine(lego_challenge_mergeable, recursive=True)
-    | combine(lego_challenge_http_mergeable  if lego_challenge.type == 'http' else {}, recursive=True)
-    | combine(lego_configuration | default({}), recursive=True)
+    {} | ansible.builtin.combine(
+      [
+        lego_configuration_defaults,
+        (lego_challenge_dns_mergeable if lego_challenge.type == 'dns' else {}),
+        (lego_challenge_http_mergeable if lego_challenge.type == 'http' else {}),
+        (lego_challenge_tls_mergeable if lego_challenge.type == 'tls' else {}),
+        (lego_configuration | default({})),
+      ],
+      recursive=true
+    )
   }}
 
 # Build global command
@@ -64,7 +80,7 @@ lego_command_systemd: >-2
   {{ lego_command_global_merged }} {{ lego_tasks.systemd }}{{ lego_command_systemd_parameters }}
 
 # ACME account
-lego_acme_account_merged: "{{ lego_acme_account_defaults | combine(lego_acme_account | default({}), recursive=True) }}"
+lego_acme_account_merged: "{{ lego_acme_account_defaults | combine(lego_acme_account | default({}), recursive=true) }}"
 lego_acme_account_base_path: >-2
   {{ lego_account_base_path }}/{{
     lego_configuration_merged.command_parameters.global.server | urlsplit('hostname')
