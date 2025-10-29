@@ -30,11 +30,13 @@
   tags: ["prepare", "prepare-postgresql"]
 
 - name: "Prevent major version update, use version of existing database instead"
+  vars:
+    existing_version: "{{ postgresql_existing_database_version.content | b64decode | trim }}"
   ansible.builtin.set_fact:
-    postgresql_container_version: "{{ postgresql_existing_database_version.content | b64decode | int }}"
+    postgresql_container_version: "{{ existing_version }}"
   when:
     - "postgresql_existing_database_version.content is defined"
-    - "(postgresql_container_version | int) != (postgresql_existing_database_version.content | b64decode | int)"
+    - "(postgresql_container_version | split('.') | first) != (existing_version)"
   tags: ["prepare", "prepare-postgresql"]
 
 - name: "Ensure image {{ postgresql_container_image_reference }} is pulled"
