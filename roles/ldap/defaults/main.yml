@@ -32,7 +32,7 @@ ldap_server_uri: "ldap:///"
 ldap_container_labels: {}
 ldap_container_networks: []
 ldap_container_etc_hosts: {}
-ldap_container_pull: true
+ldap_container_pull: false
 ldap_container_recreate: false
 
 ldap_container_fd_soft_limit: "8192"

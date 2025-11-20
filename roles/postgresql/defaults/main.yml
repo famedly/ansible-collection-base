@@ -43,7 +43,7 @@ postgresql_container_ports: >-
   }}
 postgresql_container_networks: []
 postgresql_container_etc_hosts: {}
-postgresql_container_pull: true
+postgresql_container_pull: false
 postgresql_container_recreate: false
 
 postgresql_container_fd_soft_limit: "8192"
