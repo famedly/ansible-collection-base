@@ -1,0 +1,954 @@
+---
+ldap_oid_prefix_syntaxes: "1.3.6.1.4.1.1466.115.121.1"
+
+# 3.3.1.  Attribute Type Description
+#
+#    A value of the Attribute Type Description syntax is the definition of
+#    an attribute type.  The LDAP-specific encoding of a value of this
+#    syntax is defined by the <AttributeTypeDescription> rule in
+#    [RFC4512].
+#
+#       For example, the following definition of the createTimestamp
+#       attribute type from [RFC4512] is also a value of the Attribute
+#       Type Description syntax.  (Note: Line breaks have been added for
+#       readability; they are not part of the value when transferred in
+#       protocol.)
+#
+#          ( 2.5.18.1 NAME 'createTimestamp'
+#             EQUALITY generalizedTimeMatch
+#             ORDERING generalizedTimeOrderingMatch
+#             SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+#             SINGLE-VALUE NO-USER-MODIFICATION
+#             USAGE directoryOperation )
+#
+#    The LDAP definition for the Attribute Type Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.3 DESC 'Attribute Type Description' )
+#
+#    This syntax corresponds to the AttributeTypeDescription ASN.1 type
+#    from [X.501].
+ldap_syntax_oid_attribute_type_description: "{{ ldap_oid_prefix_syntaxes }}.3"
+
+# 3.3.2.  Bit String
+#
+#    A value of the Bit String syntax is a sequence of binary digits.  The
+#    LDAP-specific encoding of a value of this syntax is defined by the
+#    following ABNF:
+#
+#       BitString    = SQUOTE *binary-digit SQUOTE "B"
+#       binary-digit = "0" / "1"
+#
+#    The <SQUOTE> rule is defined in [RFC4512].
+#
+#       Example:
+#          '0101111101'B
+#
+#    The LDAP definition for the Bit String syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.6 DESC 'Bit String' )
+#
+#    This syntax corresponds to the BIT STRING ASN.1 type from [ASN.1].
+ldap_syntax_oid_bit_string: "{{ ldap_oid_prefix_syntaxes }}.6"
+
+# 3.3.3.  Boolean
+#
+#    A value of the Boolean syntax is one of the Boolean values, true or
+#    false.  The LDAP-specific encoding of a value of this syntax is
+#    defined by the following ABNF:
+#
+#       Boolean = "TRUE" / "FALSE"
+#
+#    The LDAP definition for the Boolean syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.7 DESC 'Boolean' )
+#
+#    This syntax corresponds to the BOOLEAN ASN.1 type from [ASN.1].
+ldap_syntax_oid_boolean: "{{ ldap_oid_prefix_syntaxes }}.7"
+
+# 3.3.4.  Country String
+#
+#    A value of the Country String syntax is one of the two-character
+#    codes from ISO 3166 [ISO3166] for representing a country.  The LDAP-
+#    specific encoding of a value of this syntax is defined by the
+#    following ABNF:
+#
+#       CountryString  = 2(PrintableCharacter)
+#
+#    The <PrintableCharacter> rule is defined in Section 3.2.
+#
+#       Examples:
+#
+#          US
+#          AU
+#
+#    The LDAP definition for the Country String syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.11 DESC 'Country String' )
+#
+#    This syntax corresponds to the following ASN.1 type from [X.520]:
+#
+#       PrintableString (SIZE (2)) -- ISO 3166 codes only
+ldap_syntax_oid_country_string: "{{ ldap_oid_prefix_syntaxes }}.11"
+
+# 3.3.5.  Delivery Method
+#
+#    A value of the Delivery Method syntax is a sequence of items that
+#    indicate, in preference order, the service(s) by which an entity is
+#    willing and/or capable of receiving messages.  The LDAP-specific
+#    encoding of a value of this syntax is defined by the following ABNF:
+#
+#       DeliveryMethod = pdm *( WSP DOLLAR WSP pdm )
+#
+#       pdm = "any" / "mhs" / "physical" / "telex" / "teletex" /
+#             "g3fax" / "g4fax" / "ia5" / "videotex" / "telephone"
+#
+#    The <WSP> and <DOLLAR> rules are defined in [RFC4512].
+#
+#       Example:
+#          telephone $ videotex
+#
+#    The LDAP definition for the Delivery Method syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.14 DESC 'Delivery Method' )
+#
+#    This syntax corresponds to the following ASN.1 type from [X.520]:
+#
+#       SEQUENCE OF INTEGER {
+#           any-delivery-method     (0),
+#           mhs-delivery            (1),
+#           physical-delivery       (2),
+#           telex-delivery          (3),
+#           teletex-delivery        (4),
+#           g3-facsimile-delivery   (5),
+#           g4-facsimile-delivery   (6),
+#           ia5-terminal-delivery   (7),
+#           videotex-delivery       (8),
+#           telephone-delivery      (9) }
+ldap_syntax_oid_delivery_method: "{{ ldap_oid_prefix_syntaxes }}.14"
+
+# 3.3.6.  Directory String
+#
+#    A value of the Directory String syntax is a string of one or more
+#    arbitrary characters from the Universal Character Set (UCS) [UCS].  A
+#    zero-length character string is not permitted.  The LDAP-specific
+#    encoding of a value of this syntax is the UTF-8 encoding [RFC3629] of
+#    the character string.  Such encodings conform to the following ABNF:
+#
+#       DirectoryString = 1*UTF8
+#
+#    The <UTF8> rule is defined in [RFC4512].
+#
+#       Example:
+#          This is a value of Directory String containing #!%#@.
+#
+#    Servers and clients MUST be prepared to receive arbitrary UCS code
+#    points, including code points outside the range of printable ASCII
+#    and code points not presently assigned to any character.
+#
+#    Attribute type definitions using the Directory String syntax should
+#    not restrict the format of Directory String values, e.g., by
+#    requiring that the character string conforms to specific patterns
+#    described by ABNF.  A new syntax should be defined in such cases.
+#
+#    The LDAP definition for the Directory String syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.15 DESC 'Directory String' )
+#
+#    This syntax corresponds to the DirectoryString parameterized ASN.1
+#    type from [X.520].
+#
+#    The DirectoryString ASN.1 type allows a choice between the
+#    TeletexString, PrintableString, or UniversalString ASN.1 types from
+#    [ASN.1].  However, note that the chosen alternative is not indicated
+#    in the LDAP-specific encoding of a Directory String value.
+#
+#    Implementations that convert Directory String values from the LDAP-
+#    specific encoding to the BER encoding used by X.500 must choose an
+#    alternative that permits the particular characters in the string and
+#    must convert the characters from the UTF-8 encoding into the
+#    character encoding of the chosen alternative.  When converting
+#    Directory String values from the BER encoding to the LDAP-specific
+#    encoding, the characters must be converted from the character
+#    encoding of the chosen alternative into the UTF-8 encoding.  These
+#    conversions SHOULD be done in a manner consistent with the Transcode
+#    step of the string preparation algorithms [RFC4518] for LDAP.
+ldap_syntax_oid_directory_string: "{{ ldap_oid_prefix_syntaxes }}.15"
+
+# 3.3.7.  DIT Content Rule Description
+#
+#    A value of the DIT Content Rule Description syntax is the definition
+#    of a DIT (Directory Information Tree) content rule.  The LDAP-
+#    specific encoding of a value of this syntax is defined by the
+#    <DITContentRuleDescription> rule in [RFC4512].
+#
+#       Example:
+#          ( 2.5.6.4 DESC 'content rule for organization'
+#             NOT ( x121Address $ telexNumber ) )
+#
+#       Note: A line break has been added for readability; it is not part
+#       of the value.
+#
+#    The LDAP definition for the DIT Content Rule Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.16
+#          DESC 'DIT Content Rule Description' )
+#
+#    This syntax corresponds to the DITContentRuleDescription ASN.1 type
+#    from [X.501].
+ldap_syntax_oid_dit_content_rule_description: "{{ ldap_oid_prefix_syntaxes }}.16"
+
+# 3.3.8.  DIT Structure Rule Description
+#
+#    A value of the DIT Structure Rule Description syntax is the
+#    definition of a DIT structure rule.  The LDAP-specific encoding of a
+#    value of this syntax is defined by the <DITStructureRuleDescription>
+#    rule in [RFC4512].
+#
+#       Example:
+#          ( 2 DESC 'organization structure rule' FORM 2.5.15.3 )
+#
+#    The LDAP definition for the DIT Structure Rule Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.17
+#          DESC 'DIT Structure Rule Description' )
+#
+#    This syntax corresponds to the DITStructureRuleDescription ASN.1 type
+#    from [X.501].
+ldap_syntax_oid_dit_structure_rule_description: "{{ ldap_oid_prefix_syntaxes }}.17"
+
+# 3.3.9.  DN
+#
+#    A value of the DN syntax is the (purported) distinguished name (DN)
+#    of an entry [RFC4512].  The LDAP-specific encoding of a value of this
+#    syntax is defined by the <distinguishedName> rule from the string
+#    representation of distinguished names [RFC4514].
+#
+#       Examples (from [RFC4514]):
+#          UID=jsmith,DC=example,DC=net
+#          OU=Sales+CN=J. Smith,DC=example,DC=net
+#          CN=John Smith\, III,DC=example,DC=net
+#          CN=Before\0dAfter,DC=example,DC=net
+#          1.3.6.1.4.1.1466.0=#04024869,DC=example,DC=com
+#          CN=Lu\C4\8Di\C4\87
+#
+#    The LDAP definition for the DN syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.12 DESC 'DN' )
+#
+#    The DN syntax corresponds to the DistinguishedName ASN.1 type from
+#    [X.501].  Note that a BER encoded distinguished name (as used by
+#    X.500) re-encoded into the LDAP-specific encoding is not necessarily
+#
+#    reversible to the original BER encoding since the chosen string type
+#    in any DirectoryString components of the distinguished name is not
+#    indicated in the LDAP-specific encoding of the distinguished name
+#    (see Section 3.3.6).
+ldap_syntax_oid_dn: "{{ ldap_oid_prefix_syntaxes }}.12"
+
+# 3.3.10.  Enhanced Guide
+#
+#    A value of the Enhanced Guide syntax suggests criteria, which consist
+#    of combinations of attribute types and filter operators, to be used
+#    in constructing filters to search for entries of particular object
+#    classes.  The Enhanced Guide syntax improves upon the Guide syntax by
+#    allowing the recommended depth of the search to be specified.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       EnhancedGuide = object-class SHARP WSP criteria WSP
+#                          SHARP WSP subset
+#       object-class  = WSP oid WSP
+#       subset        = "baseobject" / "oneLevel" / "wholeSubtree"
+#
+#       criteria   = and-term *( BAR and-term )
+#       and-term   = term *( AMPERSAND term )
+#       term       = EXCLAIM term /
+#                    attributetype DOLLAR match-type /
+#                    LPAREN criteria RPAREN /
+#                    true /
+#                    false
+#       match-type = "EQ" / "SUBSTR" / "GE" / "LE" / "APPROX"
+#       true       = "?true"
+#       false      = "?false"
+#       BAR        = %x7C  ; vertical bar ("|")
+#       AMPERSAND  = %x26  ; ampersand ("&")
+#       EXCLAIM    = %x21  ; exclamation mark ("!")
+#
+#    The <SHARP>, <WSP>, <oid>, <LPAREN>, <RPAREN>, <attributetype>, and
+#    <DOLLAR> rules are defined in [RFC4512].
+#
+#    The LDAP definition for the Enhanced Guide syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.21 DESC 'Enhanced Guide' )
+#
+#       Example:
+#          person#(sn$EQ)#oneLevel
+#
+#    The Enhanced Guide syntax corresponds to the EnhancedGuide ASN.1 type
+#    from [X.520].  The EnhancedGuide type references the Criteria ASN.1
+#    type, also from [X.520].  The <true> rule, above, represents an empty
+#
+#    "and" expression in a value of the Criteria type.  The <false> rule,
+#    above, represents an empty "or" expression in a value of the Criteria
+#    type.
+ldap_syntax_oid_enhanced_guide: "{{ ldap_oid_prefix_syntaxes }}.21"
+
+# 3.3.11.  Facsimile Telephone Number
+#
+#    A value of the Facsimile Telephone Number syntax is a subscriber
+#    number of a facsimile device on the public switched telephone
+#    network.  The LDAP-specific encoding of a value of this syntax is
+#    defined by the following ABNF:
+#
+#       fax-number       = telephone-number *( DOLLAR fax-parameter )
+#       telephone-number = PrintableString
+#       fax-parameter    = "twoDimensional" /
+#                          "fineResolution" /
+#                          "unlimitedLength" /
+#                          "b4Length" /
+#                          "a3Width" /
+#                          "b4Width" /
+#                          "uncompressed"
+#
+#    The <telephone-number> is a string of printable characters that
+#    complies with the internationally agreed format for representing
+#    international telephone numbers [E.123].  The <PrintableString> rule
+#    is defined in Section 3.2.  The <DOLLAR> rule is defined in
+#    [RFC4512].
+#
+#    The LDAP definition for the Facsimile Telephone Number syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.22 DESC 'Facsimile Telephone Number')
+#
+#    The Facsimile Telephone Number syntax corresponds to the
+#    FacsimileTelephoneNumber ASN.1 type from [X.520].
+ldap_syntax_oid_facsimile_telephone_number: "{{ ldap_oid_prefix_syntaxes }}.22"
+
+# 3.3.12.  Fax
+#
+#    A value of the Fax syntax is an image that is produced using the
+#    Group 3 facsimile process [FAX] to duplicate an object, such as a
+#    memo.  The LDAP-specific encoding of a value of this syntax is the
+#    string of octets for a Group 3 Fax image as defined in [FAX].
+#
+#    The LDAP definition for the Fax syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.23 DESC 'Fax' )
+#
+#    The ASN.1 type corresponding to the Fax syntax is defined as follows,
+#    assuming EXPLICIT TAGS:
+#
+#       Fax ::= CHOICE {
+#         g3-facsimile  [3] G3FacsimileBodyPart
+#       }
+#
+#    The G3FacsimileBodyPart ASN.1 type is defined in [X.420].
+ldap_syntax_oid_fax: "{{ ldap_oid_prefix_syntaxes }}.23"
+
+# 3.3.13.  Generalized Time
+#
+#    A value of the Generalized Time syntax is a character string
+#    representing a date and time.  The LDAP-specific encoding of a value
+#    of this syntax is a restriction of the format defined in [ISO8601],
+#    and is described by the following ABNF:
+#
+#       GeneralizedTime = century year month day hour
+#                            [ minute [ second / leap-second ] ]
+#                            [ fraction ]
+#                            g-time-zone
+#
+#       century = 2(%x30-39) ; "00" to "99"
+#       year    = 2(%x30-39) ; "00" to "99"
+#       month   =   ( %x30 %x31-39 ) ; "01" (January) to "09"
+#                 / ( %x31 %x30-32 ) ; "10" to "12"
+#       day     =   ( %x30 %x31-39 )    ; "01" to "09"
+#                 / ( %x31-32 %x30-39 ) ; "10" to "29"
+#                 / ( %x33 %x30-31 )    ; "30" to "31"
+#       hour    = ( %x30-31 %x30-39 ) / ( %x32 %x30-33 ) ; "00" to "23"
+#       minute  = %x30-35 %x30-39                        ; "00" to "59"
+#       second      = ( %x30-35 %x30-39 ) ; "00" to "59"
+#       leap-second = ( %x36 %x30 )       ; "60"
+#       fraction        = ( DOT / COMMA ) 1*(%x30-39)
+#       g-time-zone     = %x5A  ; "Z"
+#                         / g-differential
+#       g-differential  = ( MINUS / PLUS ) hour [ minute ]
+#       MINUS           = %x2D  ; minus sign ("-")
+#
+#    The <DOT>, <COMMA>, and <PLUS> rules are defined in [RFC4512].
+#
+#    The above ABNF allows character strings that do not represent valid
+#    dates (in the Gregorian calendar) and/or valid times (e.g., February
+#    31, 1994).  Such character strings SHOULD be considered invalid for
+#    this syntax.
+#
+#    The time value represents coordinated universal time (equivalent to
+#    Greenwich Mean Time) if the "Z" form of <g-time-zone> is used;
+#    otherwise, the value represents a local time in the time zone
+#    indicated by <g-differential>.  In the latter case, coordinated
+#
+#    universal time can be calculated by subtracting the differential from
+#    the local time.  The "Z" form of <g-time-zone> SHOULD be used in
+#    preference to <g-differential>.
+#
+#    If <minute> is omitted, then <fraction> represents a fraction of an
+#    hour; otherwise, if <second> and <leap-second> are omitted, then
+#    <fraction> represents a fraction of a minute; otherwise, <fraction>
+#    represents a fraction of a second.
+#
+#       Examples:
+#          199412161032Z
+#          199412160532-0500
+#
+#    Both example values represent the same coordinated universal time:
+#    10:32 AM, December 16, 1994.
+#
+#    The LDAP definition for the Generalized Time syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.24 DESC 'Generalized Time' )
+#
+#    This syntax corresponds to the GeneralizedTime ASN.1 type from
+#    [ASN.1], with the constraint that local time without a differential
+#    SHALL NOT be used.
+ldap_syntax_oid_generalized_time: "{{ ldap_oid_prefix_syntaxes }}.24"
+
+# 3.3.14.  Guide
+#
+#    A value of the Guide syntax suggests criteria, which consist of
+#    combinations of attribute types and filter operators, to be used in
+#    constructing filters to search for entries of particular object
+#    classes.  The Guide syntax is obsolete and should not be used for
+#    defining new attribute types.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       Guide = [ object-class SHARP ] criteria
+#
+#    The <object-class> and <criteria> rules are defined in Section
+#    3.3.10.  The <SHARP> rule is defined in [RFC4512].
+#
+#    The LDAP definition for the Guide syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.25 DESC 'Guide' )
+#
+#    The Guide syntax corresponds to the Guide ASN.1 type from [X.520].
+ldap_syntax_oid_guide: "{{ ldap_oid_prefix_syntaxes }}.25"
+
+# 3.3.15.  IA5 String
+#
+#    A value of the IA5 String syntax is a string of zero, one, or more
+#    characters from International Alphabet 5 (IA5) [T.50], the
+#    international version of the ASCII character set.  The LDAP-specific
+#    encoding of a value of this syntax is the unconverted string of
+#    characters, which conforms to the <IA5String> rule in Section 3.2.
+#
+#    The LDAP definition for the IA5 String syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.26 DESC 'IA5 String' )
+#
+#    This syntax corresponds to the IA5String ASN.1 type from [ASN.1].
+ldap_syntax_oid_ia5_string: "{{ ldap_oid_prefix_syntaxes }}.26"
+
+# 3.3.16.  Integer
+#
+#    A value of the Integer syntax is a whole number of unlimited
+#    magnitude.  The LDAP-specific encoding of a value of this syntax is
+#    the optionally signed decimal digit character string representation
+#    of the number (for example, the number 1321 is represented by the
+#    character string "1321").  The encoding is defined by the following
+#    ABNF:
+#
+#       Integer = ( HYPHEN LDIGIT *DIGIT ) / number
+#
+#    The <HYPHEN>, <LDIGIT>, <DIGIT>, and <number> rules are defined in
+#    [RFC4512].
+#
+#    The LDAP definition for the Integer syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.27 DESC 'INTEGER' )
+#
+#    This syntax corresponds to the INTEGER ASN.1 type from [ASN.1].
+ldap_syntax_oid_integer: "{{ ldap_oid_prefix_syntaxes }}.27"
+
+# 3.3.17.  JPEG
+#
+#    A value of the JPEG syntax is an image in the JPEG File Interchange
+#    Format (JFIF), as described in [JPEG].  The LDAP-specific encoding of
+#    a value of this syntax is the sequence of octets of the JFIF encoding
+#    of the image.
+#
+#    The LDAP definition for the JPEG syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.28 DESC 'JPEG' )
+#
+#    The JPEG syntax corresponds to the following ASN.1 type:
+#
+#       JPEG ::= OCTET STRING (CONSTRAINED BY
+#                    { -- contents octets are an image in the --
+#                      -- JPEG File Interchange Format -- })
+ldap_syntax_oid_jpeg: "{{ ldap_oid_prefix_syntaxes }}.28"
+
+# 3.3.18.  LDAP Syntax Description
+#
+#    A value of the LDAP Syntax Description syntax is the description of
+#    an LDAP syntax.  The LDAP-specific encoding of a value of this syntax
+#    is defined by the <SyntaxDescription> rule in [RFC4512].
+#
+#    The LDAP definition for the LDAP Syntax Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.54 DESC 'LDAP Syntax Description' )
+#
+#    The above LDAP definition for the LDAP Syntax Description syntax is
+#    itself a legal value of the LDAP Syntax Description syntax.
+#
+#    The ASN.1 type corresponding to the LDAP Syntax Description syntax is
+#    defined as follows, assuming EXPLICIT TAGS:
+#
+#       LDAPSyntaxDescription ::= SEQUENCE {
+#           identifier      OBJECT IDENTIFIER,
+#           description     DirectoryString { ub-schema } OPTIONAL }
+#
+#    The DirectoryString parameterized ASN.1 type is defined in [X.520].
+#
+#    The value of ub-schema (an integer) is implementation defined.  A
+#    non-normative definition appears in [X.520].
+ldap_syntax_oid_ldap_syntax_description: "{{ ldap_oid_prefix_syntaxes }}.54"
+
+# 3.3.19.  Matching Rule Description
+#
+#    A value of the Matching Rule Description syntax is the definition of
+#    a matching rule.  The LDAP-specific encoding of a value of this
+#    syntax is defined by the <MatchingRuleDescription> rule in [RFC4512].
+#
+#       Example:
+#          ( 2.5.13.2 NAME 'caseIgnoreMatch'
+#             SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+#
+#    Note: A line break has been added for readability; it is not part of
+#    the syntax.
+#
+#    The LDAP definition for the Matching Rule Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.30 DESC 'Matching Rule Description' )
+#
+#    This syntax corresponds to the MatchingRuleDescription ASN.1 type
+#    from [X.501].
+ldap_syntax_oid_matching_rule_description: "{{ ldap_oid_prefix_syntaxes }}.30"
+
+# 3.3.20.  Matching Rule Use Description
+#
+#    A value of the Matching Rule Use Description syntax indicates the
+#    attribute types to which a matching rule may be applied in an
+#    extensibleMatch search filter [RFC4511].  The LDAP-specific encoding
+#    of a value of this syntax is defined by the
+#    <MatchingRuleUseDescription> rule in [RFC4512].
+#
+#       Example:
+#          ( 2.5.13.16 APPLIES ( givenName $ surname ) )
+#
+#    The LDAP definition for the Matching Rule Use Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.31
+#          DESC 'Matching Rule Use Description' )
+#
+#    This syntax corresponds to the MatchingRuleUseDescription ASN.1 type
+#    from [X.501].
+ldap_syntax_oid_matching_rule_use_description: "{{ ldap_oid_prefix_syntaxes }}.31"
+
+# 3.3.21.  Name and Optional UID
+#
+#    A value of the Name and Optional UID syntax is the distinguished name
+#    [RFC4512] of an entity optionally accompanied by a unique identifier
+#    that serves to differentiate the entity from others with an identical
+#    distinguished name.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       NameAndOptionalUID = distinguishedName [ SHARP BitString ]
+#
+#    The <BitString> rule is defined in Section 3.3.2.  The
+#    <distinguishedName> rule is defined in [RFC4514].  The <SHARP> rule
+#    is defined in [RFC4512].
+#
+#    Note that although the '#' character may occur in the string
+#    representation of a distinguished name, no additional escaping of
+#    this character is performed when a <distinguishedName> is encoded in
+#    a <NameAndOptionalUID>.
+#
+#       Example:
+#          1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B
+#
+#    The LDAP definition for the Name and Optional UID syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.34 DESC 'Name And Optional UID' )
+#
+#    This syntax corresponds to the NameAndOptionalUID ASN.1 type from
+#    [X.520].
+ldap_syntax_oid_name_and_optional_uid: "{{ ldap_oid_prefix_syntaxes }}.34"
+
+# 3.3.22.  Name Form Description
+#
+#    A value of the Name Form Description syntax is the definition of a
+#    name form, which regulates how entries may be named.  The LDAP-
+#    specific encoding of a value of this syntax is defined by the
+#    <NameFormDescription> rule in [RFC4512].
+#
+#       Example:
+#          ( 2.5.15.3 NAME 'orgNameForm' OC organization MUST o )
+#
+#    The LDAP definition for the Name Form Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.35 DESC 'Name Form Description' )
+#
+#    This syntax corresponds to the NameFormDescription ASN.1 type from
+#    [X.501].
+ldap_syntax_oid_name_form_description: "{{ ldap_oid_prefix_syntaxes }}.35"
+
+# 3.3.23.  Numeric String
+#
+#    A value of the Numeric String syntax is a sequence of one or more
+#    numerals and spaces.  The LDAP-specific encoding of a value of this
+#    syntax is the unconverted string of characters, which conforms to the
+#    following ABNF:
+#
+#       NumericString = 1*(DIGIT / SPACE)
+#
+#    The <DIGIT> and <SPACE> rules are defined in [RFC4512].
+#
+#       Example:
+#          15 079 672 281
+#
+#    The LDAP definition for the Numeric String syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.36 DESC 'Numeric String' )
+#
+#    This syntax corresponds to the NumericString ASN.1 type from [ASN.1].
+ldap_syntax_oid_numeric_string: "{{ ldap_oid_prefix_syntaxes }}.36"
+
+# 3.3.24.  Object Class Description
+#
+#    A value of the Object Class Description syntax is the definition of
+#    an object class.  The LDAP-specific encoding of a value of this
+#    syntax is defined by the <ObjectClassDescription> rule in [RFC4512].
+#
+#       Example:
+#          ( 2.5.6.2 NAME 'country' SUP top STRUCTURAL MUST c
+#             MAY ( searchGuide $ description ) )
+#
+#    Note: A line break has been added for readability; it is not part of
+#    the syntax.
+#
+#    The LDAP definition for the Object Class Description syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.37 DESC 'Object Class Description' )
+#
+#    This syntax corresponds to the ObjectClassDescription ASN.1 type from
+#    [X.501].
+ldap_syntax_oid_object_class_description: "{{ ldap_oid_prefix_syntaxes }}.37"
+
+# 3.3.25.  Octet String
+#
+#    A value of the Octet String syntax is a sequence of zero, one, or
+#    more arbitrary octets.  The LDAP-specific encoding of a value of this
+#    syntax is the unconverted sequence of octets, which conforms to the
+#    following ABNF:
+#
+#       OctetString = *OCTET
+#
+#    The <OCTET> rule is defined in [RFC4512].  Values of this syntax are
+#    not generally human-readable.
+#
+#    The LDAP definition for the Octet String syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.40 DESC 'Octet String' )
+#
+#    This syntax corresponds to the OCTET STRING ASN.1 type from [ASN.1].
+ldap_syntax_oid_octet_string: "{{ ldap_oid_prefix_syntaxes }}.40"
+
+# 3.3.26.  OID
+#
+#    A value of the OID syntax is an object identifier: a sequence of two
+#    or more non-negative integers that uniquely identify some object or
+#    item of specification.  Many of the object identifiers used in LDAP
+#    also have IANA registered names [RFC4520].
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the <oid> rule in [RFC4512].
+#
+#       Examples:
+#          1.2.3.4
+#          cn
+#
+#    The LDAP definition for the OID syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.38 DESC 'OID' )
+#
+#    This syntax corresponds to the OBJECT IDENTIFIER ASN.1 type from
+#    [ASN.1].
+ldap_syntax_oid_oid: "{{ ldap_oid_prefix_syntaxes }}.38"
+
+# 3.3.27.  Other Mailbox
+#
+#    A value of the Other Mailbox syntax identifies an electronic mailbox,
+#    in a particular named mail system.  The LDAP-specific encoding of a
+#    value of this syntax is defined by the following ABNF:
+#
+#       OtherMailbox = mailbox-type DOLLAR mailbox
+#       mailbox-type = PrintableString
+#       mailbox      = IA5String
+#
+#    The <mailbox-type> rule represents the type of mail system in which
+#    the mailbox resides (for example, "MCIMail"), and <mailbox> is the
+#    actual mailbox in the mail system described by <mailbox-type>.  The
+#    <PrintableString> and <IA5String> rules are defined in Section 3.2.
+#    The <DOLLAR> rule is defined in [RFC4512].
+#
+#    The LDAP definition for the Other Mailbox syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.39 DESC 'Other Mailbox' )
+#
+#    The ASN.1 type corresponding to the Other Mailbox syntax is defined
+#    as follows, assuming EXPLICIT TAGS:
+#
+#       OtherMailbox ::= SEQUENCE {
+#           mailboxType  PrintableString,
+#           mailbox      IA5String
+#       }
+ldap_syntax_oid_other_mailbox: "{{ ldap_oid_prefix_syntaxes }}.39"
+
+# 3.3.28.  Postal Address
+#
+#    A value of the Postal Address syntax is a sequence of strings of one
+#    or more arbitrary UCS characters, which form an address in a physical
+#    mail system.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       PostalAddress = line *( DOLLAR line )
+#       line          = 1*line-char
+#       line-char     = %x00-23
+#                       / (%x5C "24")  ; escaped "$"
+#                       / %x25-5B
+#                       / (%x5C "5C")  ; escaped "\"
+#                       / %x5D-7F
+#                       / UTFMB
+#
+#    Each character string (i.e., <line>) of a postal address value is
+#    encoded as a UTF-8 [RFC3629] string, except that "\" and "$"
+#    characters, if they occur in the string, are escaped by a "\"
+#    character followed by the two hexadecimal digit code for the
+#    character.  The <DOLLAR> and <UTFMB> rules are defined in [RFC4512].
+#
+#    Many servers limit the postal address to no more than six lines of no
+#    more than thirty characters each.
+#
+#       Example:
+#          1234 Main St.$Anytown, CA 12345$USA
+#          \241,000,000 Sweepstakes$PO Box 1000000$Anytown, CA 12345$USA
+#
+#    The LDAP definition for the Postal Address syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.41 DESC 'Postal Address' )
+#
+#    This syntax corresponds to the PostalAddress ASN.1 type from [X.520];
+#    that is
+#
+#       PostalAddress ::= SEQUENCE SIZE(1..ub-postal-line) OF
+#           DirectoryString { ub-postal-string }
+#
+#    The values of ub-postal-line and ub-postal-string (both integers) are
+#    implementation defined.  Non-normative definitions appear in [X.520].
+ldap_syntax_oid_postal_address: "{{ ldap_oid_prefix_syntaxes }}.41"
+
+# 3.3.29.  Printable String
+#
+#    A value of the Printable String syntax is a string of one or more
+#    latin alphabetic, numeric, and selected punctuation characters as
+#    specified by the <PrintableCharacter> rule in Section 3.2.
+#
+#    The LDAP-specific encoding of a value of this syntax is the
+#    unconverted string of characters, which conforms to the
+#    <PrintableString> rule in Section 3.2.
+#
+#       Example:
+#          This is a PrintableString.
+#
+#    The LDAP definition for the PrintableString syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.44 DESC 'Printable String' )
+#
+#    This syntax corresponds to the PrintableString ASN.1 type from
+#    [ASN.1].
+ldap_syntax_oid_printable_string: "{{ ldap_oid_prefix_syntaxes }}.44"
+
+# 3.3.30.  Substring Assertion
+#
+#    A value of the Substring Assertion syntax is a sequence of zero, one,
+#    or more character substrings used as an argument for substring
+#    extensible matching of character string attribute values; i.e., as
+#    the matchValue of a MatchingRuleAssertion [RFC4511].  Each substring
+#    is a string of one or more arbitrary characters from the Universal
+#    Character Set (UCS) [UCS].  A zero-length substring is not permitted.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       SubstringAssertion = [ initial ] any [ final ]
+#
+#       initial  = substring
+#       any      = ASTERISK *(substring ASTERISK)
+#       final    = substring
+#       ASTERISK = %x2A  ; asterisk ("*")
+#
+#       substring           = 1*substring-character
+#       substring-character = %x00-29
+#                             / (%x5C "2A")  ; escaped "*"
+#                             / %x2B-5B
+#                             / (%x5C "5C")  ; escaped "\"
+#                             / %x5D-7F
+#                             / UTFMB
+#
+#    Each <substring> of a Substring Assertion value is encoded as a UTF-8
+#    [RFC3629] string, except that "\" and "*" characters, if they occur
+#    in the substring, are escaped by a "\" character followed by the two
+#    hexadecimal digit code for the character.
+#
+#    The Substring Assertion syntax is used only as the syntax of
+#    assertion values in the extensible match.  It is not used as an
+#    attribute syntax, or in the SubstringFilter [RFC4511].
+#
+#    The LDAP definition for the Substring Assertion syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.58 DESC 'Substring Assertion' )
+#
+#    This syntax corresponds to the SubstringAssertion ASN.1 type from
+#    [X.520].
+ldap_syntax_oid_substring_assertion: "{{ ldap_oid_prefix_syntaxes }}.58"
+
+# 3.3.31.  Telephone Number
+#
+#    A value of the Telephone Number syntax is a string of printable
+#    characters that complies with the internationally agreed format for
+#    representing international telephone numbers [E.123].
+#
+#    The LDAP-specific encoding of a value of this syntax is the
+#    unconverted string of characters, which conforms to the
+#    <PrintableString> rule in Section 3.2.
+#
+#       Examples:
+#          +1 512 315 0280
+#          +1-512-315-0280
+#          +61 3 9896 7830
+#
+#    The LDAP definition for the Telephone Number syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.50 DESC 'Telephone Number' )
+#
+#    The Telephone Number syntax corresponds to the following ASN.1 type
+#    from [X.520]:
+#
+#       PrintableString (SIZE(1..ub-telephone-number))
+#
+#    The value of ub-telephone-number (an integer) is implementation
+#    defined.  A non-normative definition appears in [X.520].
+ldap_syntax_oid_telephone_number: "{{ ldap_oid_prefix_syntaxes }}.50"
+
+# 3.3.32.  Teletex Terminal Identifier
+#
+#    A value of this syntax specifies the identifier and (optionally)
+#    parameters of a teletex terminal.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       teletex-id = ttx-term *(DOLLAR ttx-param)
+#       ttx-term   = PrintableString          ; terminal identifier
+#       ttx-param  = ttx-key COLON ttx-value  ; parameter
+#       ttx-key    = "graphic" / "control" / "misc" / "page" / "private"
+#       ttx-value  = *ttx-value-octet
+#
+#       ttx-value-octet = %x00-23
+#                         / (%x5C "24")  ; escaped "$"
+#                         / %x25-5B
+#                         / (%x5C "5C")  ; escaped "\"
+#                         / %x5D-FF
+#
+#    The <PrintableString> and <COLON> rules are defined in Section 3.2.
+#    The <DOLLAR> rule is defined in [RFC4512].
+#
+#    The LDAP definition for the Teletex Terminal Identifier syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.51
+#          DESC 'Teletex Terminal Identifier' )
+#
+#    This syntax corresponds to the TeletexTerminalIdentifier ASN.1 type
+#    from [X.520].
+ldap_syntax_oid_teletex_terminal_identifier: "{{ ldap_oid_prefix_syntaxes }}.51"
+
+# 3.3.33.  Telex Number
+#
+#    A value of the Telex Number syntax specifies the telex number,
+#    country code, and answerback code of a telex terminal.
+#
+#    The LDAP-specific encoding of a value of this syntax is defined by
+#    the following ABNF:
+#
+#       telex-number  = actual-number DOLLAR country-code
+#                          DOLLAR answerback
+#       actual-number = PrintableString
+#       country-code  = PrintableString
+#       answerback    = PrintableString
+#
+#    The <PrintableString> rule is defined in Section 3.2.  The <DOLLAR>
+#    rule is defined in [RFC4512].
+#
+#    The LDAP definition for the Telex Number syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.52 DESC 'Telex Number' )
+#
+#    This syntax corresponds to the TelexNumber ASN.1 type from [X.520].
+ldap_syntax_oid_telex_number: "{{ ldap_oid_prefix_syntaxes }}.52"
+
+# 3.3.34.  UTC Time
+#
+#    A value of the UTC Time syntax is a character string representing a
+#    date and time to a precision of one minute or one second.  The year
+#    is given as a two-digit number.  The LDAP-specific encoding of a
+#    value of this syntax follows the format defined in [ASN.1] for the
+#    UTCTime type and is described by the following ABNF:
+#
+#       UTCTime         = year month day hour minute [ second ]
+#                            [ u-time-zone ]
+#       u-time-zone     = %x5A  ; "Z"
+#                         / u-differential
+#       u-differential  = ( MINUS / PLUS ) hour minute
+#
+#    The <year>, <month>, <day>, <hour>, <minute>, <second>, and <MINUS>
+#    rules are defined in Section 3.3.13.  The <PLUS> rule is defined in
+#    [RFC4512].
+#
+#    The above ABNF allows character strings that do not represent valid
+#    dates (in the Gregorian calendar) and/or valid times.  Such character
+#    strings SHOULD be considered invalid for this syntax.
+#
+#    The time value represents coordinated universal time if the "Z" form
+#    of <u-time-zone> is used; otherwise, the value represents a local
+#    time.  In the latter case, if <u-differential> is provided, then
+#    coordinated universal time can be calculated by subtracting the
+#    differential from the local time.  The <u-time-zone> SHOULD be
+#    present in time values, and the "Z" form of <u-time-zone> SHOULD be
+#    used in preference to <u-differential>.
+#
+#    The LDAP definition for the UTC Time syntax is:
+#
+#       ( 1.3.6.1.4.1.1466.115.121.1.53 DESC 'UTC Time' )
+#
+#    Note: This syntax is deprecated in favor of the Generalized Time
+#    syntax.
+#
+#    The UTC Time syntax corresponds to the UTCTime ASN.1 type from
+#    [ASN.1].
+ldap_syntax_oid_utc_time: "{{ ldap_oid_prefix_syntaxes }}.53"
