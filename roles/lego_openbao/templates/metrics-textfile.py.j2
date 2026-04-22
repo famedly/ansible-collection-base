@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+
+from pathlib import Path
+from cryptography import x509
+import time
+
+textfile = open('{{ lego_openbao_base_path }}/metrics', 'w')
+
+textfile.write('# HELP ssl_certificate_expiry Unix timestamp of certificate expiry\n')
+textfile.write('# TYPE ssl_certificate_expiry gauge\n')
+
+certs_path = Path('{{ lego_openbao_certificate_store }}')
+for certificate_path in certs_path.glob('*.crt'):
+    if certificate_path.match('*.issuer.crt'):
+        continue
+    certificate_bytes = open(certificate_path, 'rb').read()
+    certificate = x509.load_pem_x509_certificate(certificate_bytes)
+    textfile.write('ssl_certificate_expiry{path="' + str(certificate_path) + '"} ' + certificate.not_valid_after.strftime('%s') + '\n')

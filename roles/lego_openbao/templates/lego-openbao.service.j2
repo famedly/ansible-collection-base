@@ -1,0 +1,39 @@
+[Unit]
+Description=Fetch certificates from OpenBao
+
+[Service]
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lego-openbao
+{% for envvar in lego_openbao_configuration_merged.environment %}
+Environment={{ envvar }}={{ lego_openbao_configuration_merged.environment[envvar] }}
+{% endfor %}
+Type=oneshot
+Group={{ lego_openbao_user_res.group }}
+User={{ lego_openbao_user_res.name }}
+WorkingDirectory={{ lego_openbao_base_path }}
+ExecStartPre=+-chown {{ lego_openbao_certificate_store_user }}:{{ lego_openbao_certificate_store_group }} {{ lego_openbao_certificate_store }}
+ExecStartPre=+-chmod {{ lego_openbao_certificate_store_mode }} {{ lego_openbao_certificate_store }}
+{% if lego_openbao_pre_renewal_script is defined %}
+ExecStartPre=+-{{ lego_openbao_pre_renewal_script }}
+{% endif %}
+ExecStart={{ lego_openbao_command_systemd }}
+ExecStartPost=+-/bin/sh -c 'chown {{ lego_openbao_certificate_store_user }}:{{ lego_openbao_certificate_store_group }} {{ lego_openbao_certificate_store }}/*'
+ExecStartPost=+-/bin/sh -c 'chmod 0640 {{ lego_openbao_certificate_store }}/*'
+{% if lego_openbao_enable_metrics_textfile %}
+ExecStartPost=+-/usr/bin/python3 {{ lego_openbao_base_path }}/metrics-textfile.py
+{% endif %}
+{% if lego_openbao_post_renewal_script is defined %}
+{# see https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_tests.html#type-tests #}
+{# list is not string or mapping but iterable #}
+{% if lego_openbao_post_renewal_script is not string and lego_openbao_post_renewal_script is not mapping and lego_openbao_post_renewal_script is iterable and lego_openbao_post_renewal_script | length > 0 %}
+{% for hook in lego_openbao_post_renewal_script %}
+ExecStartPost=+-{{ hook }}
+{% endfor %}
+{% else %}
+ExecStartPost=+-{{ lego_openbao_post_renewal_script }}
+{% endif %}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

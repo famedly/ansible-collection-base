@@ -1,0 +1,20 @@
+---
+- name: "Run lego-openbao"
+  become: true
+  become_user: "{{ lego_openbao_user_res.name }}"
+  environment: "{{ lego_openbao_configuration_merged.environment }}"
+  ansible.builtin.command: "{{ lego_openbao_command_playbook }}"
+  register: lego_openbao_run
+  changed_when: lego_openbao_run.rc == 0
+
+- name: "Recurse certificate store ownership"
+  ansible.builtin.file:
+    path: "{{ lego_openbao_certificate_store }}"
+    state: directory
+    owner: "{{ lego_openbao_certificate_store_user }}"
+    group: "{{ lego_openbao_certificate_store_group }}"
+    recurse: true
+
+- name: "Reload systemd"
+  ansible.builtin.systemd:
+    daemon_reload: true

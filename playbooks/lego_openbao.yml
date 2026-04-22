@@ -1,0 +1,6 @@
+---
+- name: "Install and configure lego for OpenBao"
+  hosts: "{{ lego_openbao_hosts | default('lego_openbao') }}"
+  become: true
+  roles:
+    - role: "lego_openbao"
