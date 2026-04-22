@@ -1,0 +1,103 @@
+---
+lego_openbao_challenge_dns_mergeable:
+  command_parameters:
+    global:
+      dns: "{{ lego_openbao_challenge.provider }}"
+
+lego_openbao_challenge_http_mergeable:
+  command_parameters:
+    global:
+      http:
+      "http.port": ":{{ lego_openbao_challenge_http_port }}"
+
+lego_openbao_challenge_tls_mergeable:
+  command_parameters:
+    global:
+      tls:
+
+lego_openbao_configuration_merged: >-
+  {{
+    {} | ansible.builtin.combine(
+      [
+        lego_openbao_configuration_defaults,
+        (lego_openbao_challenge_dns_mergeable if lego_openbao_challenge.type == 'dns' else {}),
+        (lego_openbao_challenge_http_mergeable if lego_openbao_challenge.type == 'http' else {}),
+        (lego_openbao_challenge_tls_mergeable if lego_openbao_challenge.type == 'tls' else {}),
+        (lego_openbao_configuration | default({})),
+      ],
+      recursive=true
+    )
+  }}
+
+# Build global command
+lego_openbao_command_domains: >-
+  {% for domain in lego_openbao_certificate.domains %} --domains={{ domain }}{%-
+  endfor -%}
+
+lego_openbao_command_parameters_global: >-
+  {% for parameter in
+  lego_openbao_configuration_merged.command_parameters.global %} --{{ parameter
+  }}
+    {%- if not (
+      lego_openbao_configuration_merged.command_parameters.global[parameter] == None
+      or
+      lego_openbao_configuration_merged.command_parameters.global[parameter] == ''
+    ) -%}
+      ={{ lego_openbao_configuration_merged.command_parameters.global[parameter] }}
+    {%- endif -%}
+  {%- endfor -%}
+
+lego_openbao_command_global_merged: >-
+  {{ lego_openbao_executable }}{{ lego_openbao_command_domains }}{{
+  lego_openbao_command_parameters_global }}
+
+# Build action commands
+lego_openbao_command_playbook_parameters: >-
+  {% for parameter in
+  lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.playbook]
+  %} --{{ parameter }}
+    {%- if not (
+      lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.playbook][parameter] == None
+      or
+      lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.playbook][parameter] == ''
+    ) -%}
+      ={{ lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.playbook][parameter] }}
+    {%- endif -%}
+  {%- endfor -%}
+
+lego_openbao_command_playbook: >-
+  {{ lego_openbao_command_global_merged }}
+  {{ lego_openbao_tasks.playbook }}
+  {{ lego_openbao_command_playbook_parameters }}
+
+lego_openbao_command_eab_parameters: >-
+  --eab --kid={{ lego_openbao_eab_kid }} --hmac={{ lego_openbao_eab_hmac }}
+
+lego_openbao_command_eab: >-
+  {{ lego_openbao_command_global_merged }}
+  {{ lego_openbao_command_eab_parameters }}
+  {{ lego_openbao_tasks.playbook }}
+  {{ lego_openbao_command_playbook_parameters }}
+
+lego_openbao_command_systemd_parameters: >-
+  {% for parameter in
+  lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.systemd]
+  %} --{{ parameter }}
+    {%- if not (
+      lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.systemd][parameter] == None
+      or
+      lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.systemd][parameter] == ''
+    ) -%}
+      ={{ lego_openbao_configuration_merged.command_parameters[lego_openbao_tasks.systemd][parameter] }}
+    {%- endif -%}
+  {%- endfor -%}
+
+lego_openbao_command_systemd: >-
+  {{ lego_openbao_command_global_merged }}
+  {{ lego_openbao_tasks.systemd }}
+  {{ lego_openbao_command_systemd_parameters }}
+
+# ACME account
+lego_openbao_acme_account_base_path: >-
+  {{ lego_openbao_account_base_path }}/{{ lego_openbao_issuer_hostname }}/{{ lego_openbao_certificate.email }}
+lego_openbao_acme_account_path: "{{ lego_openbao_acme_account_base_path }}/account.json"

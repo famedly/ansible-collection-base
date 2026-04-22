@@ -1,0 +1,58 @@
+---
+lego_openbao_base_path: "/opt/lego"
+lego_openbao_certificate_store: "{{ lego_openbao_base_path }}/certificates"
+lego_openbao_certificate_store_user: "{{ lego_openbao_user_res.uid | default(lego_openbao_user) }}"
+lego_openbao_certificate_store_group: "{{ lego_openbao_user_res.group | default(lego_openbao_user) }}"
+lego_openbao_certificate_store_mode: "0750"
+lego_openbao_systemd_path: "/etc/systemd/system"
+
+lego_openbao_executable: "{{ lego_openbao_base_path }}/lego"
+lego_openbao_account_base_path: "{{ lego_openbao_base_path }}/accounts"
+
+lego_openbao_enable_metrics_textfile: false
+
+lego_openbao_user: "lego"
+lego_openbao_timer_on_boot: ~
+lego_openbao_timer_on_calendar: "*-*-* 00,12:00:00"
+lego_openbao_timer_interval: ~
+lego_openbao_timer_accuracy: ~
+lego_openbao_timer_random_delay: "43200"
+lego_openbao_timer_persistent: true
+
+lego_openbao_certificate:
+  domains:
+    - "instance.domain.company.com"
+  email: ops@domain.company.com
+
+lego_openbao_approle:
+  role_id: ~
+  secret_id: ~
+
+lego_openbao_force_renew_eab_account: false
+
+lego_openbao_issuer_hostname: "vault.example.local"
+lego_openbao_issuer_path: "/v1/pki_int/roles/lego/acme"
+
+lego_openbao_challenge:
+  type: "http"
+lego_openbao_challenge_http_port: 80
+
+lego_openbao_tasks:
+  playbook: "run"
+  systemd: "renew"
+
+lego_openbao_certificate_renewal_days: 30
+lego_openbao_configuration_default_key_type: "ec256"
+
+lego_openbao_configuration_defaults:
+  command_parameters:
+    global:
+      server: "https://{{ lego_openbao_issuer_hostname }}{{ lego_openbao_issuer_path }}/directory"
+      accept-tos: true
+      email: "{{ lego_openbao_certificate.email }}"
+      path: "{{ lego_openbao_base_path }}"
+      key-type: "{{ lego_openbao_configuration_default_key_type }}"
+    run: {}
+    renew:
+      days: "{{ lego_openbao_certificate_renewal_days }}"
+  environment: {}
