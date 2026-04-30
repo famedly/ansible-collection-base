@@ -1,0 +1,197 @@
+---
+
+- name: "Ensure lego user is created"
+  ansible.builtin.user:
+    name: "{{ lego_openbao_user }}"
+    state: "present"
+    system: true
+  register: "lego_openbao_user_res"
+  tags: [ "prepare", "prepare-lego" ]
+
+- name: "Ensure base directory for lego is created"
+  ansible.builtin.file:
+    path: "{{ lego_openbao_base_path }}"
+    state: "directory"
+    owner: "{{ lego_openbao_certificate_store_user }}"
+    group: "{{ lego_openbao_certificate_store_group }}"
+    mode: "0755"
+  tags: [ "prepare", "prepare-lego" ]
+
+- name: "Ensure certificate directory exists and has the configured permissions"
+  ansible.builtin.file:
+    path: "{{ lego_openbao_certificate_store }}"
+    state: "directory"
+    owner: "{{ lego_openbao_certificate_store_user }}"
+    group: "{{ lego_openbao_certificate_store_group }}"
+    mode: "{{ lego_openbao_certificate_store_mode }}"
+  tags: [ "prepare", "prepare-lego" ]
+  notify: [ "Recurse certificate store ownership" ]
+
+- name: "Ensure lego metrics textfile generator exists"
+  ansible.builtin.template:
+    src: "metrics-textfile.py.j2"
+    dest: "{{ lego_openbao_base_path }}/metrics-textfile.py"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: "lego_openbao_enable_metrics_textfile"
+  tags: [ "prepare", "prepare-lego" ]
+
+- name: "Check if lego lego_openbao_executable exists"
+  ansible.builtin.stat:
+    path: "{{ lego_openbao_executable }}"
+  check_mode: false
+  changed_when: false
+  register: "lego_openbao_executable_file"
+  failed_when:
+    - "not lego_openbao_executable_file.stat.exists"
+    - "not lego_openbao_executable_file.stat.executable"
+  tags: [ "prepare", "prepare-lego" ]
+
+- name: "Check if lego account file exists"
+  ansible.builtin.stat:
+    path: "{{ lego_openbao_acme_account_path }}"
+  check_mode: false
+  changed_when: false
+  ignore_errors: true
+  register: "lego_openbao_acme_account_file"
+  tags: [ "prepare", "prepare-lego" ]
+
+- name: "Create ACME account using EAB"
+  when: "not lego_openbao_acme_account_file.stat.exists or lego_openbao_force_renew_eab_account"
+  block:
+    # https://openbao.org/api-docs/auth/approle/#login-with-approle
+    - name: Login to OpenBao
+      ansible.builtin.uri:
+        method: POST
+        url: "https://{{ lego_openbao_issuer_hostname }}/{{ lego_openbao_auth_backend_login_path }}"
+        body:
+          role_id: "{{ lego_openbao_approle.role_id }}"
+          secret_id: "{{ lego_openbao_approle.secret_id }}"
+        body_format: json
+        timeout: 180
+      register: lego_openbao_login_data
+
+    # https://openbao.org/api-docs/secret/pki/#get-acme-eab-binding-token
+    - name: Get ACME EAB binding token
+      ansible.builtin.uri:
+        method: POST
+        url: "https://{{ lego_openbao_issuer_hostname }}{{ lego_openbao_issuer_path }}/new-eab"
+        body: {}
+        body_format: json
+        headers:
+          X-Vault-Token: "{{ lego_openbao_login_data.json.auth.client_token }}"
+        timeout: 180
+      register: lego_openbao_eab_token_data
+
+    - name: "Run lego with EAB credentials"
+      become: true
+      become_user: "{{ lego_openbao_user_res.name }}"
+      environment: "{{ lego_openbao_configuration_merged.environment }}"
+      ansible.builtin.command: "{{ lego_openbao_command_eab }}"
+      vars:
+        lego_openbao_eab_kid: "{{ lego_openbao_eab_token_data.json.data.id }}"
+        lego_openbao_eab_hmac: "{{ lego_openbao_eab_token_data.json.data.key }}"
+      register: lego_openbao_run_eab
+      changed_when: lego_openbao_run_eab.rc == 0
+
+- name: "Check if certificate file exists"
+  ansible.builtin.stat:
+    path: "{{ lego_openbao_certificate_store }}/{{
+      lego_openbao_certificate.domains[0] }}.crt"
+  register: "lego_openbao_certificate_stat"
+  changed_when: "not lego_openbao_certificate_stat.stat.exists"
+  notify: [ "Run lego-openbao" ]
+  tags: [ "deploy", "deploy-lego" ]
+
+- name: "Check if certificate is nonexistent or differs from wanted state"
+  when:
+    - lego_openbao_certificate_stat.stat.exists
+    - lego_openbao_certificate_stat.stat.size > 0
+  block:
+    - name: "Fetch certificate info"
+      community.crypto.x509_certificate_info:
+        path: "{{ lego_openbao_certificate_store }}/{{
+          lego_openbao_certificate.domains[0] }}.crt"
+      register: "lego_openbao_certificate_info"
+      tags: [ "deploy", "deploy-lego" ]
+
+    # you have to seperatly loop because map with regex_replace does not like getting AnsibleUnsafeText objects
+    - name: "Remove DNS at the start of the SAN"
+      ansible.builtin.set_fact:
+        lego_openbao_certificate_sans: "{{ lego_openbao_certificate_sans | default([]) +
+          [item | regex_replace('^DNS:', '')] }}"
+      loop: "{{ lego_openbao_certificate_info.subject_alt_name }}"
+      tags: [ "deploy", "deploy-lego" ]
+
+    - name: "Compare SANs, notify handler if they differ"
+      ansible.builtin.set_fact:
+        lego_openbao_certificate_sans_equal: >-
+          {{
+            lego_openbao_certificate.domains is superset(lego_openbao_certificate_sans)
+            and lego_openbao_certificate.domains is subset(lego_openbao_certificate_sans)
+          }}
+      changed_when: "not lego_openbao_certificate_sans_equal"
+      notify: [ "Run lego-openbao" ]
+      tags: [ "deploy", "deploy-lego" ]
+
+    - name: "Compare pubkey type, notify handler if it differs"
+      ansible.builtin.set_fact:
+        lego_openbao_certificate_pubkey_type_differs: "{{
+          lego_openbao_certificate_info.public_key_type !=
+          lego_openbao_certificate_wanted_keytype }}"
+      vars:
+        lego_openbao_certificate_wanted_keytype: >-
+          {{
+            "ECC" if "ec" in lego_openbao_configuration_merged.command_parameters.global["key-type"]
+            else "RSA" if "rsa" in lego_openbao_configuration_merged.command_parameters.global["key-type"]
+          }}
+      changed_when: "lego_openbao_certificate_pubkey_type_differs"
+      notify: [ "Run lego-openbao" ]
+      tags: [ "deploy", "deploy-lego" ]
+
+- name: "Notify handler if pubkey is empty"
+  ansible.builtin.debug:
+    msg: "pubkey file exists, but is empty"
+  when:
+    - lego_openbao_certificate_stat.stat.exists
+    - lego_openbao_certificate_stat.stat.size == 0
+  changed_when: true
+  notify: [ "Run lego-openbao" ]
+  tags: [ "deploy", "deploy-lego" ]
+
+- name: "Ensure systemd unit file for lego-openbao is templated"
+  ansible.builtin.template:
+    src: "lego-openbao.service.j2"
+    dest: "{{ lego_openbao_systemd_path }}/lego-openbao.service"
+    owner: "root"
+    group: "root"
+    mode: "0640"
+  notify: [ "Reload systemd" ]
+  tags: [ "deploy", "deploy-lego" ]
+
+- name: "Ensure systemd timer for lego-openbao is templated"
+  ansible.builtin.template:
+    src: "lego-openbao.timer.j2"
+    dest: "{{ lego_openbao_systemd_path }}/lego-openbao.timer"
+    owner: "root"
+    group: "root"
+    mode: "0640"
+  notify: [ "Reload systemd" ]
+  tags: [ "deploy", "deploy-lego" ]
+
+- name: "Flush handlers to ensure systemd has loaded the unit files"
+  ansible.builtin.meta: "flush_handlers"
+
+- name: "Enable lego-openbao.service"
+  ansible.builtin.systemd:
+    name: "lego-openbao.service"
+    enabled: true
+  tags: [ "deploy", "deploy-lego" ]
+
+- name: "Enable lego-openbao.timer"
+  ansible.builtin.systemd:
+    name: "lego-openbao.timer"
+    state: "started"
+    enabled: true
+  tags: [ "deploy", "deploy-lego" ]
