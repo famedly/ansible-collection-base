@@ -57,8 +57,21 @@
   register: "lego_openbao_acme_account_file"
   tags: [ "prepare", "prepare-lego" ]
 
+- name: "Check if certificate file exists"
+  ansible.builtin.stat:
+    path: "{{ lego_openbao_certificate_store }}/{{
+      lego_openbao_certificate.domains[0] }}.crt"
+  register: "lego_openbao_certificate_stat"
+  changed_when: "not lego_openbao_certificate_stat.stat.exists"
+  tags: [ "deploy", "deploy-lego" ]
+
+# If account.json exists but no certificate, something went wrong
+# Recreate the ACME account in this case
 - name: "Create ACME account using EAB"
-  when: "not lego_openbao_acme_account_file.stat.exists or lego_openbao_force_renew_eab_account"
+  when: >-
+    lego_openbao_force_renew_eab_account
+    or not lego_openbao_acme_account_file.stat.exists
+    or not lego_openbao_certificate_stat.stat.exists
   block:
     # https://openbao.org/api-docs/auth/approle/#login-with-approle
     - name: Login to OpenBao
@@ -94,15 +107,6 @@
         lego_openbao_eab_hmac: "{{ lego_openbao_eab_token_data.json.data.key }}"
       register: lego_openbao_run_eab
       changed_when: lego_openbao_run_eab.rc == 0
-
-- name: "Check if certificate file exists"
-  ansible.builtin.stat:
-    path: "{{ lego_openbao_certificate_store }}/{{
-      lego_openbao_certificate.domains[0] }}.crt"
-  register: "lego_openbao_certificate_stat"
-  changed_when: "not lego_openbao_certificate_stat.stat.exists"
-  notify: [ "Run lego-openbao" ]
-  tags: [ "deploy", "deploy-lego" ]
 
 - name: "Check if certificate is nonexistent or differs from wanted state"
   when:
