@@ -8,6 +8,6 @@ on:
 
 jobs:
   ansible:
-    uses: famedly/github-workflows/.github/workflows/ansible.yml@ansible-v1
+    uses: famedly/github-workflows/.github/workflows/ansible.yml@57b383862ba81dfa265bb33d492e2bbcbc96891d
     with:
       collection: famedly/base
