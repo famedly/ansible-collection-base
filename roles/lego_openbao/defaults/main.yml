@@ -57,4 +57,5 @@ lego_openbao_configuration_defaults:
     run: {}
     renew:
       days: "{{ lego_openbao_certificate_renewal_days }}"
+      no-random-sleep: null   # we already use RandomizedDelaySec
   environment: {}

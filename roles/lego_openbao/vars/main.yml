@@ -70,12 +70,17 @@ lego_openbao_command_playbook: >-
   {{ lego_openbao_tasks.playbook }}
   {{ lego_openbao_command_playbook_parameters }}
 
-lego_openbao_command_eab_parameters: >-
+lego_openbao_command_eab_new_account_parameters: >-
   --eab --kid={{ lego_openbao_eab_kid }} --hmac={{ lego_openbao_eab_hmac }}
+
+# OpenBao always advertises "meta": {"externalAccountRequired": true}, so lego will ask for
+# EAB credentials for renewal as well but won't use them, since the account already exists.
+lego_openbao_command_eab_renew_parameters: >-
+  --eab --kid=unused --hmac=unused
 
 lego_openbao_command_eab: >-
   {{ lego_openbao_command_global_merged }}
-  {{ lego_openbao_command_eab_parameters }}
+  {{ lego_openbao_command_eab_new_account_parameters }}
   {{ lego_openbao_tasks.playbook }}
   {{ lego_openbao_command_playbook_parameters }}
 
@@ -94,6 +99,7 @@ lego_openbao_command_systemd_parameters: >-
 
 lego_openbao_command_systemd: >-
   {{ lego_openbao_command_global_merged }}
+  {{ lego_openbao_command_eab_renew_parameters }}
   {{ lego_openbao_tasks.systemd }}
   {{ lego_openbao_command_systemd_parameters }}
 
