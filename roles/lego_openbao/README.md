@@ -17,3 +17,11 @@ Set the following variables
 - `lego_openbao_issuer_path` (default: `/v1/pki-int/roles/lego/acme`): Full path to the OpenBao role with ACME support.
 
 The options regarding ACME challenges are the same as documented in the `lego` role, just prefixed with `lego_openbao_` instead of `lego_`.
+
+## Container restart
+
+This role offers a handler to restart Docker containers when a new certificate is issued while running it.
+
+It's possible to configure this behaviour using the variable `lego_openbao_restart_container_names` (default: `[]`).
+
+Actions that should be performed after the systemd service is run can be defined in a script referenced by `lego_openbao_post_renewal_script` (default: ~).

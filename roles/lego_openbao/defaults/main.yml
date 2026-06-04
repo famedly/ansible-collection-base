@@ -46,6 +46,9 @@ lego_openbao_tasks:
 lego_openbao_certificate_renewal_days: 30
 lego_openbao_configuration_default_key_type: "ec256"
 
+lego_openbao_restart_container_names: []
+lego_openbao_post_renewal_script: ~
+
 lego_openbao_configuration_defaults:
   command_parameters:
     global:

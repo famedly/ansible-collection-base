@@ -18,3 +18,11 @@
 - name: "Reload systemd"
   ansible.builtin.systemd:
     daemon_reload: true
+
+- name: Restart containers
+  listen: "restart_containers"
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: "started"
+    restart: true
+  loop: "{{ lego_openbao_restart_container_names | default([], true) }}"

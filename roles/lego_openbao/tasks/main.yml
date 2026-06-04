@@ -107,6 +107,7 @@
         lego_openbao_eab_hmac: "{{ lego_openbao_eab_token_data.json.data.key }}"
       register: lego_openbao_run_eab
       changed_when: lego_openbao_run_eab.rc == 0
+      notify: [ "restart_containers" ]
 
 - name: "Check if certificate is nonexistent or differs from wanted state"
   when:
