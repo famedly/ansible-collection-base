@@ -106,6 +106,9 @@
         lego_openbao_eab_kid: "{{ lego_openbao_eab_token_data.json.data.id }}"
         lego_openbao_eab_hmac: "{{ lego_openbao_eab_token_data.json.data.key }}"
       register: lego_openbao_run_eab
+      until: lego_openbao_run_eab is success
+      retries: 3
+      delay: 5
       changed_when: lego_openbao_run_eab.rc == 0
       notify: [ "restart_containers" ]
 
