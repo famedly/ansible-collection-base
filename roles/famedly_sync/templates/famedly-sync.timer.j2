@@ -7,6 +7,9 @@ OnCalendar=*-*-* 11:45:00
 RandomizeDelaySec=30m
 {% elif famedly_hourly_sync %}
 OnCalendar=hourly
+{% elif famedly_sync_timer_on_unit_active_sec is defined %}
+OnBootSec={{ famedly_sync_timer_on_boot_sec | default('15min') }}
+OnUnitActiveSec={{ famedly_sync_timer_on_unit_active_sec }}
 {% else %}
 OnBootSec=15min
 OnUnitActiveSec=15min
