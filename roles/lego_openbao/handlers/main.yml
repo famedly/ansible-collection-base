@@ -19,10 +19,18 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
+- name: Check which restart target containers exist
+  listen: "restart_containers"
+  community.docker.docker_container_info:
+    name: "{{ item }}"
+  register: lego_openbao_restart_container_info
+  changed_when: false
+  loop: "{{ lego_openbao_restart_container_names | default([], true) }}"
+
 - name: Restart containers
   listen: "restart_containers"
   community.docker.docker_container:
-    name: "{{ item }}"
+    name: "{{ item.item }}"
     state: "started"
     restart: true
-  loop: "{{ lego_openbao_restart_container_names | default([], true) }}"
+  loop: "{{ lego_openbao_restart_container_info.results | default([]) | selectattr('exists') | list }}"
