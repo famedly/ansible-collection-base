@@ -1,4 +1,0 @@
----
-shell_tweaks_packages_terminfo:
-  - "kitty-terminfo"
-  - "foot-terminfo"
