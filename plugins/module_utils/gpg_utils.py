@@ -10,9 +10,13 @@ from typing import List
 __metaclass__ = type
 
 # Check if all required libs can loaded
+import hashlib
 import os.path
+import re
+import socket
+import stat
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 
 try:
@@ -88,6 +92,67 @@ class TrustLevel:
     SIGNATURE_ERROR = "%"
 
 
+SESSION_KEY_PATTERN = r"\d+:[0-9A-F]+"
+SESSION_KEY_STATUS_RE = re.compile(r"^\[GNUPG:\] SESSION_KEY (" + SESSION_KEY_PATTERN + r")$", re.M)
+
+
+class SessionKeyCache:
+    """
+    Client for the run-scoped session key cache daemon
+    (see plugins/plugin_utils/gpg_session_cache.py).
+
+    Maps the sha256 of a ciphertext to its session key, so that a file which was
+    already decrypted during the current ansible run can be decrypted again
+    without a private key operation (e.g. on a smartcard). Every failure is
+    treated as a cache miss.
+    """
+
+    TIMEOUT = 2
+
+    def __init__(self, socket_path: str):
+        # Only talk to a socket in a directory nobody else can access, otherwise
+        # another user could receive our session keys. This mirrors _cache_dir in
+        # plugins/plugin_utils/gpg_session_cache.py, which module_utils can't import.
+        socket_path = os.path.realpath(socket_path)
+        self.socket_path = (
+            socket_path if self.__is_private_dir(os.path.dirname(socket_path)) else None
+        )
+
+    @staticmethod
+    def __is_private_dir(path: str) -> bool:
+        try:
+            info = os.lstat(path)
+        except OSError:
+            return False
+        return (
+            stat.S_ISDIR(info.st_mode)
+            and info.st_uid == os.geteuid()
+            and not info.st_mode & 0o077
+        )
+
+    def __request(self, line: str) -> Optional[str]:
+        if self.socket_path is None:
+            return None
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.settimeout(self.TIMEOUT)
+                sock.connect(self.socket_path)
+                sock.sendall(line.encode("ascii") + b"\n")
+                with sock.makefile("rb") as response:
+                    return response.readline(4096).decode("ascii").rstrip("\n")
+        except (OSError, UnicodeDecodeError):
+            return None
+
+    def get(self, digest: str) -> Optional[str]:
+        session_key = self.__request(f"GET {digest}")
+        if session_key and re.fullmatch(SESSION_KEY_PATTERN, session_key):
+            return session_key
+        return None
+
+    def put(self, digest: str, session_key: str):
+        self.__request(f"PUT {digest} {session_key}")
+
+
 class SecretStore:
     SUPPORTED_TYPES = ["plain", "json", "yaml"]
     ENCODING = "UTF-8"
@@ -101,16 +166,25 @@ class SecretStore:
         pass_gpg_id_file: str = ".gpg-id",
         recipient_method: str = "pass_file",
         recipient_list: List[str] = None,
+        session_key_cache_socket: str = None,
     ):
         self.password_store_path = Path(password_store_path)
         self.file_extension = file_extension
         self.pass_gpg_id_file = pass_gpg_id_file
+        self.session_key_cache = (
+            SessionKeyCache(session_key_cache_socket)
+            if session_key_cache_socket
+            else None
+        )
 
         # Create gpg object
         self.__gpg = gnupg.GPG(
             keyring=keyring,
         )
         self.gpg = self.__gpg
+
+        # Memoized recipient fingerprints by sha256(ciphertext)
+        self.__file_recipients = {}
 
         # Manage recipients
         self.recipient_method = recipient_method
@@ -130,17 +204,36 @@ class SecretStore:
             .as_posix()
         )
 
-    def __load(self, slug: str) -> str:
-        file = self.__convert_slug_to_path(slug)
-        try:
-            with open(file, "rb") as f:
-                result = self.__gpg.decrypt_file(f)
-                if result.ok:
-                    return result.data.decode(self.ENCODING)
-                else:
-                    raise GPGException(result.status)
-        except FileNotFoundError:
-            raise FileNotFoundError
+    def __read(self, slug: str) -> bytes:
+        return self.__convert_slug_to_path(slug).read_bytes()
+
+    def __decrypt(self, ciphertext: bytes, digest: str) -> str:
+        cache = self.session_key_cache
+        session_key = cache.get(digest) if cache else None
+        if session_key:
+            # gpg reads the session key up to the newline from stdin before the
+            # ciphertext, so it doesn't show up in the process list
+            result = self.__gpg.decrypt(
+                session_key.encode("ascii") + b"\n" + ciphertext,
+                extra_args=["--override-session-key-fd", "0"],
+            )
+            if result.ok:
+                return result.data.decode(self.ENCODING)
+
+        # gpg also logs the session key, which must not end up in a log-file
+        # configured in gpg.conf. Status lines are still written to stderr.
+        result = self.__gpg.decrypt(
+            ciphertext,
+            extra_args=(
+                ["--show-session-key", "--log-file", os.devnull] if cache else None
+            ),
+        )
+        if not result.ok:
+            raise GPGException(result.status)
+        match = cache and SESSION_KEY_STATUS_RE.search(result.stderr)
+        if match:
+            cache.put(digest, match.group(1))
+        return result.data.decode(self.ENCODING)
 
     def __save(self, slug: str, data: str) -> bool:
         file = self.__convert_slug_to_path(slug)
@@ -156,26 +249,32 @@ class SecretStore:
             raise GPGException(result.status)
 
     def get_recipients_from_encrypted_file(self, slug) -> List[str]:
-        file = self.__convert_slug_to_path(slug)
-        recipients = list()
-        try:
-            with open(file, "rb") as f:
-                recipient_subkeys = self.__gpg.get_recipients(f.read())
+        ciphertext = self.__read(slug)
+        return self.__get_recipients_from_ciphertext(
+            ciphertext, hashlib.sha256(ciphertext).hexdigest()
+        )
+
+    def __get_recipients_from_ciphertext(
+        self, ciphertext: bytes, digest: str
+    ) -> List[str]:
+        if digest not in self.__file_recipients:
+            recipient_subkeys = self.__gpg.get_recipients(ciphertext)
+            # Resolve all recipients with a single gpg call instead of one per recipient
+            keys = self.__gpg.list_keys(keys=recipient_subkeys) if recipient_subkeys else []
+            primary_fingerprints = {}
+            for key in keys:
+                primary_fingerprints[key["keyid"]] = key["fingerprint"]
+                for subkey in key["subkeys"]:
+                    primary_fingerprints[subkey[0]] = key["fingerprint"]
+            recipients = list()
             for recipient_subkey in recipient_subkeys:
-                found_keys = self.__gpg.list_keys(keys=recipient_subkey)
-                if (
-                    found_keys
-                    and found_keys.fingerprints
-                    and len(found_keys.fingerprints) > 0
-                ):
-                    recipients.append(found_keys.fingerprints[0])
-                else:
+                if recipient_subkey not in primary_fingerprints:
                     raise GPGException(
                         f"Can not find primary key in keyring for encryption subkey {recipient_subkey}"
                     )
-            return recipients
-        except FileNotFoundError:
-            raise FileNotFoundError
+                recipients.append(primary_fingerprints[recipient_subkey])
+            self.__file_recipients[digest] = recipients
+        return list(self.__file_recipients[digest])
 
     def get(
         self, slug: str, data_type: str = "plain", check_recipients: bool = True
@@ -185,8 +284,11 @@ class SecretStore:
         if data_type not in self.SUPPORTED_TYPES:
             raise NotImplementedError("Datatype {0} is not supported".format(data_type))
 
+        ciphertext = self.__read(slug)
+        digest = hashlib.sha256(ciphertext).hexdigest()
+
         if check_recipients:
-            file_recipients = self.get_recipients_from_encrypted_file(slug)
+            file_recipients = self.__get_recipients_from_ciphertext(ciphertext, digest)
             expected_recipients = self.get_recipients(slug)
 
             for file_recipient in file_recipients:
@@ -197,7 +299,7 @@ class SecretStore:
             if len(expected_recipients) > 0:
                 raise RecipientsMismatchError
 
-        raw = self.__load(slug)
+        raw = self.__decrypt(ciphertext, digest)
         try:
             if data_type == "plain":
                 return raw

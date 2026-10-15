@@ -173,6 +173,19 @@ options:
             `secret` instead. Existing secrets are handled as usual.
         type: bool
         default: False
+    session_key_cache_socket:
+        description:
+            - >-
+                Unix socket of the session key cache of the current ansible run,
+                used to decrypt files that were already decrypted during this run
+                without a private key operation.
+            - >-
+                Set automatically by the action plugin when the module runs on
+                the controller; there should be no need to set it manually.
+            - >-
+                Ignored unless the socket is in a directory that is owned by
+                and only accessible to the user running the module.
+        type: str
 """
 
 EXAMPLES = r"""
@@ -431,6 +444,7 @@ def main():
                 options=secret_suboptions,
                 no_log=False,
             ),
+            session_key_cache_socket=dict(required=False, type="str", no_log=False),
             **SECRET_OPTIONS,
         ),
         required_one_of=[("password_slug", "secrets")],
@@ -464,6 +478,7 @@ def main():
         file_extension=module.params["file_extension"],
         keyring=module.params["keyring"],
         pass_gpg_id_file=module.params["pass_gpg_id_file"],
+        session_key_cache_socket=module.params["session_key_cache_socket"],
     )
 
     if module.params["secrets"] is None:

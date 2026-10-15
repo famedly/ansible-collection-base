@@ -16,6 +16,7 @@ class MockSecretStore:
         pass_gpg_id_file: str = ".gpg-id",
         recipient_method: str = "pass_file",
         recipient_list: List[str] = None,
+        session_key_cache_socket: str = None,
     ):
         self.RECIPIENTS = ["recipient1", "recipient2", "recipient3"]
         self.SECRETSTORE = {

@@ -77,6 +77,9 @@ from ansible_collections.famedly.base.plugins.module_utils.gpg_utils import (
     SecretStore,
     check_secretstore_import_errors,
 )
+from ansible_collections.famedly.base.plugins.plugin_utils.gpg_session_cache import (
+    ensure_session_key_cache,
+)
 
 
 class LookupModule(LookupBase):
@@ -96,7 +99,10 @@ class LookupModule(LookupBase):
         password_store_path = kwargs.get("password_store_path", "~/.password-store/")
         check_recipients = kwargs.get("check_recipients", True)
 
-        password_store = SecretStore(password_store_path=password_store_path)
+        password_store = SecretStore(
+            password_store_path=password_store_path,
+            session_key_cache_socket=ensure_session_key_cache(),
+        )
         result = password_store.get(
             terms[0], data_type, check_recipients=check_recipients
         )
