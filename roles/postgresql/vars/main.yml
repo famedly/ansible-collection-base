@@ -5,7 +5,7 @@ postgresql_connection:
       postgresql_socket_path
       if postgresql_connect_socket
       else (
-        postgresql_container.container.NetworkSettings.IPAddress
+        (postgresql_container.container.NetworkSettings.Networks | dict2items | first).value.IPAddress
         if postgresql_host_port is undefined
         else "127.0.0.1"
       )
