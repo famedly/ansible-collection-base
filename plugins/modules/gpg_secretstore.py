@@ -58,12 +58,64 @@ options:
         choices: ['present', 'absent']
         default: 'present'
     password_slug:
-        description: >-
-            Password slug, something like `servers/prod/some_secret` used to
-            look find the encrypted files, compatible with the unix pass
-            utility
-        required: True
+        description:
+            - >-
+                Password slug, something like `servers/prod/some_secret` used to
+                look find the encrypted files, compatible with the unix pass
+                utility
+            - Exactly one of `password_slug` and `secrets` is required.
         type: str
+    secrets:
+        description:
+            - >-
+                Process multiple secrets in a single module run, which is much
+                faster than looping over the module. Each entry takes the same
+                per-secret options as the module itself; options not set in an
+                entry fall back to the module level value.
+            - >-
+                The per-secret results are returned in `results`, in the same
+                order.
+            - Exactly one of `password_slug` and `secrets` is required.
+        type: list
+        elements: dict
+        suboptions:
+            password_slug:
+                description: Password slug of this secret, see `password_slug`
+                required: True
+                type: str
+            state:
+                description: See `state`
+                type: str
+                choices: ['present', 'absent']
+            data_type:
+                description: See `data_type`
+                type: str
+                choices: ['plain', 'yaml', 'json']
+            secret_fact:
+                description: See `secret_fact`
+                type: str
+            overwrite:
+                description: See `overwrite`
+                type: bool
+            secret_type:
+                description: See `secret_type`
+                type: str
+                choices: ['random', 'binary', 'user_supplied']
+            secret_binary:
+                description: See `secret_binary`
+                type: str
+            secret_length:
+                description: See `secret_length`
+                type: int
+            secret_pattern:
+                description: See `secret_pattern`
+                type: str
+            user_supplied_secret:
+                description: See `user_supplied_secret`
+                type: str
+            skip_missing:
+                description: See `skip_missing`
+                type: bool
     data_type:
         description: >-
             Datatype of the encrypted data. If not `plain` the encrypted file
@@ -115,6 +167,12 @@ options:
         description: >-
             If `secret_type` is user_supplied, this value defines the secret
         type: str
+    skip_missing:
+        description: >-
+            If the secret doesn't exist, don't generate it and return no
+            `secret` instead. Existing secrets are handled as usual.
+        type: bool
+        default: False
 """
 
 EXAMPLES = r"""
@@ -148,6 +206,18 @@ EXAMPLES = r"""
     data_type: 'yaml'
   delegate_to: localhost
   register: yaml
+
+- name: Load multiple secrets at once
+  gpg_secretstore:
+    secret_length: 32
+    secrets:
+      - password_slug: 'example/secret'
+      - password_slug: 'example/yaml'
+        data_type: 'yaml'
+      - password_slug: 'example/long'
+        secret_length: 64
+  delegate_to: localhost
+  register: secrets
 """
 
 RETURN = r"""
@@ -157,7 +227,15 @@ secret:
       (if CHANGED). If data type is json or yaml, this might not actually be a string,
       but ansible doesn't have a way to specify this in the RETURN spec.
     type: str
-    returned: always
+    returned: when using `password_slug`, unless the secret is missing and `skip_missing` is set
+results:
+    description: >-
+      Results for each entry of `secrets`, in the same order. Each result
+      contains `password_slug`, `secret`, `changed`, `message`, `action` and
+      `warning` as described for a single secret.
+    type: list
+    elements: dict
+    returned: when using `secrets`
 action:
     description: >-
       Gives information on what the operation:
@@ -170,8 +248,10 @@ password_slug:
     type: str
     returned: always
 diff:
-    description: List of the old and current gpg recipients key-ids
-    type: dict
+    description: >-
+      List of the old and current gpg recipients key-ids. When using `secrets`,
+      this is a list with one entry per secret.
+    type: raw
     returned: changed
 message:
     description: Human-readable information about the (completed) task
@@ -302,7 +382,34 @@ class SecretGenerator:
         return user_supplied_secret
 
 
+# Options describing a single secret. In batch mode (`secrets`), the top-level
+# values act as defaults for every entry.
+SECRET_OPTIONS = dict(
+    state=dict(type="str", choices=["present", "absent"], default="present"),
+    data_type=dict(type="str", choices=["plain", "yaml", "json"], default="plain"),
+    secret_fact=dict(type="str", no_log=False),
+    overwrite=dict(type="bool", default=False),
+    secret_type=dict(
+        type="str",
+        choices=["random", "binary", "user_supplied"],
+        default="random",
+        no_log=False,
+    ),
+    secret_binary=dict(type="str", no_log=False),
+    secret_length=dict(type="int", default=20, no_log=False),
+    secret_pattern=dict(type="str", default="([A-Za-z0-9])", no_log=False),
+    user_supplied_secret=dict(type="str", no_log=True),
+    skip_missing=dict(type="bool", default=False),
+)
+
+
 def main():
+    secret_suboptions = {
+        name: {key: value for key, value in spec.items() if key != "default"}
+        for name, spec in SECRET_OPTIONS.items()
+    }
+    secret_suboptions["password_slug"] = dict(required=True, type="str", no_log=False)
+
     module = AnsibleModule(
         argument_spec=dict(
             # General arguments
@@ -316,37 +423,18 @@ def main():
             pass_gpg_id_file=dict(
                 required=False, type="str", default=".gpg-id", no_log=False
             ),
-            # Password specific arguments
-            state=dict(
+            password_slug=dict(required=False, type="str", no_log=False),
+            secrets=dict(
                 required=False,
-                type="str",
-                choices=["present", "absent"],
-                default="present",
-            ),
-            password_slug=dict(required=True, type="str", no_log=False),
-            data_type=dict(
-                required=False,
-                type="str",
-                choices=["plain", "yaml", "json"],
-                default="plain",
-            ),
-            secret_fact=dict(required=False, type="str", no_log=False),
-            # Password generation arguments
-            overwrite=dict(required=False, type="bool", default="false"),
-            secret_type=dict(
-                required=False,
-                type="str",
-                choices=["random", "binary", "user_supplied"],
-                default="random",
+                type="list",
+                elements="dict",
+                options=secret_suboptions,
                 no_log=False,
             ),
-            secret_binary=dict(required=False, type="str", no_log=False),
-            secret_length=dict(required=False, type="int", default=20, no_log=False),
-            secret_pattern=dict(
-                required=False, type="str", default="([A-Za-z0-9])", no_log=False
-            ),
-            user_supplied_secret=dict(required=False, type="str", no_log=True),
+            **SECRET_OPTIONS,
         ),
+        required_one_of=[("password_slug", "secrets")],
+        mutually_exclusive=[("password_slug", "secrets")],
         supports_check_mode=True,
     )
 
@@ -378,25 +466,59 @@ def main():
         pass_gpg_id_file=module.params["pass_gpg_id_file"],
     )
 
-    secretGenerator = SecretGenerator(
-        secret_type=module.params["secret_type"],
-        data_type=module.params["data_type"],
-        binary=module.params["secret_binary"],
-        length=module.params["secret_length"],
-        letter_pattern=module.params["secret_pattern"],
-        user_supplied_secret=module.params["user_supplied_secret"],
+    if module.params["secrets"] is None:
+        result = _process_secret(module, store, module.params)
+        result["warning"] = warnings + result["warning"]
+        for warn_msg in result["warning"]:
+            module.warn(warn_msg)
+        if result["failed"]:
+            module.fail_json(**result)
+        module.exit_json(**result)
+
+    # Batch mode: process all secrets in a single module run
+    results = []
+    for secret in module.params["secrets"]:
+        params = {
+            name: module.params[name] if secret[name] is None else secret[name]
+            for name in SECRET_OPTIONS
+        }
+        params["password_slug"] = secret["password_slug"]
+        result = _process_secret(module, store, params)
+        for warn_msg in result["warning"]:
+            module.warn(f"{params['password_slug']}: {warn_msg}")
+        results.append(result)
+
+    for warn_msg in warnings:
+        module.warn(warn_msg)
+    batch_result = dict(
+        changed=any(result["changed"] for result in results),
+        results=results,
+        ansible_facts={
+            name: value
+            for result in results
+            for name, value in result.pop("ansible_facts").items()
+        },
+        diff=[result.pop("diff") for result in results],
+        warning=warnings,
     )
+    failed_slugs = [result["password_slug"] for result in results if result["failed"]]
+    if failed_slugs:
+        module.fail_json(
+            msg="Failed to process secret(s): " + ", ".join(failed_slugs),
+            **batch_result,
+        )
+    module.exit_json(**batch_result)
 
-    state = module.params["state"]
-    password_slug = module.params["password_slug"]
-    data_type = module.params["data_type"]
-    overwrite = module.params["overwrite"]
 
+def _process_secret(module, store, params):
+    """Ensure the state of a single secret and return its result"""
+    password_slug = params["password_slug"]
     result = dict(
         changed=False,
+        failed=False,
         message="",
-        warning=warnings,
-        password_slug=module.params["password_slug"],
+        warning=[],
+        password_slug=password_slug,
         secret="",
         ansible_facts={},
         diff={
@@ -407,7 +529,36 @@ def main():
         },
     )
 
-    failed = False
+    try:
+        _ensure_secret(module, store, params, result)
+    except UserSuppliedSecretMissingError as e:
+        result["msg"] = str(e)
+        result["changed"] = False
+        result["failed"] = True
+
+    if result["message"]:
+        module.log(result["message"])
+
+    result["diff"]["before"] = "\n".join(result["diff"]["before"]) + "\n"
+    result["diff"]["after"] = "\n".join(result["diff"]["after"]) + "\n"
+
+    return result
+
+
+def _ensure_secret(module, store, params, result):
+    secretGenerator = SecretGenerator(
+        secret_type=params["secret_type"],
+        data_type=params["data_type"],
+        binary=params["secret_binary"],
+        length=params["secret_length"],
+        letter_pattern=params["secret_pattern"],
+        user_supplied_secret=params["user_supplied_secret"],
+    )
+
+    state = params["state"]
+    password_slug = params["password_slug"]
+    data_type = params["data_type"]
+    overwrite = params["overwrite"]
 
     lock = FileLock(
         (Path("/tmp/") / hashlib.md5(password_slug.encode()).hexdigest()).as_posix()
@@ -433,12 +584,18 @@ def main():
                 result["diff"]["after"] = result["diff"]["before"]
 
             except FileNotFoundError:
-                result["message"] = "Secret not found! Generation new secret"
-                result["secret"] = secretGenerator.getSecretData()
-                result["diff"]["before"] = []
-                result["diff"]["after"] = store.get_recipients(slug=password_slug)
-                result["action"] = "add"
-                result["changed"] = True
+                if params["skip_missing"]:
+                    result["message"] = "Secret not found, skipping generation"
+                    del result["secret"]
+                else:
+                    result["message"] = "Secret not found! Generation new secret"
+                    result["secret"] = secretGenerator.getSecretData()
+                    result["diff"]["before"] = []
+                    result["diff"]["after"] = store.get_recipients(
+                        slug=password_slug
+                    )
+                    result["action"] = "add"
+                    result["changed"] = True
 
             except RecipientsMismatchError:
                 result["warning"].append("Secret-Recipient-Mismatch! Re-encrypting.")
@@ -454,10 +611,10 @@ def main():
 
             except GPGException as e:
                 result["msg"] = "GPG Exception: " + str(e)
-                failed = True
+                result["failed"] = True
 
-            if module.params["secret_fact"]:
-                result["ansible_facts"][module.params["secret_fact"]] = result["secret"]
+            if params["secret_fact"] and "secret" in result:
+                result["ansible_facts"][params["secret_fact"]] = result["secret"]
 
             if result["changed"] and not module.check_mode:
                 store.put(
@@ -494,21 +651,6 @@ def main():
                 result["diff"]["before"] = []
                 result["diff"]["after"] = []
                 result["changed"] = False
-
-    if result["message"]:
-        module.log(result["message"])
-
-    if result["warning"]:
-        for warn_msg in result["warning"]:
-            module.warn(warn_msg)
-
-    result["diff"]["before"] = "\n".join(result["diff"]["before"]) + "\n"
-    result["diff"]["after"] = "\n".join(result["diff"]["after"]) + "\n"
-
-    if failed:
-        module.fail_json(**result)
-    else:
-        module.exit_json(**result)
 
 
 def _commit_changes(repo_path: str, file_path: str, remove: bool = False):

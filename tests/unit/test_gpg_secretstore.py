@@ -12,6 +12,7 @@ from ansible_collections.famedly.base.tests.unit.mock_filelock import MockFileLo
 from ansible_collections.famedly.base.tests.unit.mock_secretstore import MockSecretStore
 from ansible_collections.famedly.base.tests.unit.utils import (
     AnsibleExitJson,
+    AnsibleFailJson,
     set_module_args,
     exit_json,
     fail_json,
@@ -125,6 +126,89 @@ class TestGPGSecretstore:
             ansible_result["diff"]["before"] == "recipient1\nrecipient2\nrecipient3\n"
         )
         assert ansible_result["diff"]["after"] == "\n"
+
+    def test_batch(self, monkeypatch):
+        self.patchSecretstore(monkeypatch, MockSecretStore)
+        set_module_args(
+            {
+                "password_store_path": "/home/jadyn/famedly/git/environments/local/secret_storage/",
+                "secret_length": 32,
+                "secrets": [
+                    {"password_slug": "secret/exists"},
+                    {"password_slug": "secret/not-present"},
+                    {"password_slug": "secret/not-present-long", "secret_length": 64},
+                    {"password_slug": "secret/recipient-missmatch"},
+                ],
+            }
+        )
+        with pytest.raises(AnsibleExitJson) as result:
+            gpg_secretstore.main()
+        ansible_result = result.value.result
+        results = ansible_result["results"]
+
+        assert ansible_result["changed"] is True
+        assert [r["password_slug"] for r in results] == [
+            "secret/exists",
+            "secret/not-present",
+            "secret/not-present-long",
+            "secret/recipient-missmatch",
+        ]
+        assert [r["changed"] for r in results] == [False, True, True, True]
+        assert results[0]["secret"] == "secretdata"
+        assert len(results[1]["secret"]) == 32
+        assert len(results[2]["secret"]) == 64
+        assert results[3]["secret"] == "secretdata"
+        assert len(ansible_result["diff"]) == 4
+        assert ansible_result["diff"][1]["after"] == "recipient1\nrecipient2\nrecipient3\n"
+
+    def test_batch_skip_missing(self, monkeypatch):
+        self.patchSecretstore(monkeypatch, MockSecretStore)
+        set_module_args(
+            {
+                "password_store_path": "/home/jadyn/famedly/git/environments/local/secret_storage/",
+                "secrets": [
+                    {"password_slug": "secret/exists", "skip_missing": True},
+                    {"password_slug": "secret/not-present", "skip_missing": True},
+                ],
+            }
+        )
+        with pytest.raises(AnsibleExitJson) as result:
+            gpg_secretstore.main()
+        results = result.value.result["results"]
+
+        assert result.value.result["changed"] is False
+        assert results[0]["secret"] == "secretdata"
+        assert "secret" not in results[1]
+        assert results[1]["changed"] is False
+
+    def test_batch_failure(self, monkeypatch):
+        self.patchSecretstore(monkeypatch, MockSecretStore)
+        set_module_args(
+            {
+                "password_store_path": "/home/jadyn/famedly/git/environments/local/secret_storage/",
+                "secrets": [
+                    {"password_slug": "secret/not-present", "secret_type": "user_supplied"},
+                    {"password_slug": "secret/exists"},
+                ],
+            }
+        )
+        with pytest.raises(AnsibleFailJson) as result:
+            gpg_secretstore.main()
+        ansible_result = result.value.result
+
+        assert "secret/not-present" in ansible_result["msg"]
+        assert ansible_result["results"][1]["secret"] == "secretdata"
+
+    def test_slug_and_secrets_are_exclusive(self, monkeypatch):
+        self.patchSecretstore(monkeypatch, MockSecretStore)
+        set_module_args(
+            {
+                "password_slug": "secret/exists",
+                "secrets": [{"password_slug": "secret/exists"}],
+            }
+        )
+        with pytest.raises(AnsibleFailJson):
+            gpg_secretstore.main()
 
 
 class TestSecretGenerator:
