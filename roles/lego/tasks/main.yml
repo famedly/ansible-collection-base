@@ -74,7 +74,7 @@
         checksum: "{{ lego_source_checksum_url }}"
         url_username: "{{ lego_source_url_http_username | default(omit, true) }}"
         url_password: "{{ lego_source_url_http_password | default(omit, true) }}"
-        force_basic_auth: "{{ lego_source_url_http_username | default(false, true) | bool }}"
+        force_basic_auth: "{{ lego_source_url_http_username | default('', true) | length > 0 }}"
         mode: "0644"
       tags: ["prepare", "prepare-lego"]
 

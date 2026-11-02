@@ -3,19 +3,16 @@
   ansible.builtin.user:
     name: "{{ user.name }}"
     shell: "{{ user.attrs.shell | default(omit) }}"
-    groups: >-
-      {{
-        omit
-        if 'groups' not in user.attrs or user.attrs.groups is not sequence
-        else ansible_facts.getent_group | intersect(user.attrs.groups)
-      }}
-    append: "{{ user.attrs.append | default(omit) }}"
+    groups: "{{ ansible_facts.getent_group | intersect(user.attrs.groups) if user_groups_configured else omit }}"
+    append: "{{ user.attrs.append | default(omit) if user_groups_configured else omit }}"
     comment: "{{ user.attrs.gecos | default(omit) }}"
     password: "{{ user.attrs.password | default(omit) }}"
     password_lock: "{{ user.attrs.password_lock | default(omit) }}"
     uid: "{{ user.attrs.uid | default(omit) }}"
     state: "{{ user.attrs.active | default(false) | ternary('present', 'absent') }}"
     remove: true
+  vars:
+    user_groups_configured: "{{ 'groups' in user.attrs and user.attrs.groups is sequence }}"
   become: true
 
 - name: "Ensure ssh keys for {{ user.name }} are up to date" # noqa: name[template]

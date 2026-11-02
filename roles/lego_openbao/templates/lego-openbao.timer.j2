@@ -2,7 +2,7 @@
 Description=Timer for lego-openbao
 
 [Timer]
-{% if lego_openbao_timer_on_boot | bool %}
+{% if lego_openbao_timer_on_boot %}
 OnBootSec={{ lego_openbao_timer_on_boot }}
 {% endif %}
 {% if lego_openbao_timer_on_calendar %}

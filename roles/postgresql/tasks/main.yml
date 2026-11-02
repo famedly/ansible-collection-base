@@ -161,8 +161,8 @@
   delay: 3
 
 - name: "Set global configuration options"
-  community.postgresql.postgresql_set:
-    name: "{{ item.option }}"
+  community.postgresql.postgresql_alter_system:
+    param: "{{ item.option }}"
     value: "{{ item.value }}"
     login_host: "{{ postgresql_connection.login_host }}"
     login_port: "{{ postgresql_connection.login_port }}"
