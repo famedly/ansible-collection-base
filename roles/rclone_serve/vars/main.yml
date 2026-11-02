@@ -24,16 +24,16 @@ rclone_serve_container_labels_merged: >-
 
 # this should NEVER be overwritten. instead, overwrite rclone_serve_flags_merged
 rclone_serve_container_command: >-
-  {% set rclone_flags = [] %}
+  {% set ns = namespace(rclone_flags=[]) %}
     {%- for rclone_flag in rclone_serve_flags_merged | dict2items -%}
       {%- if not rclone_flag.value -%}
-        {%- do rclone_flags.append('--' ~ rclone_flag.key) -%}
+        {%- set ns.rclone_flags = ns.rclone_flags + ['--' ~ rclone_flag.key] -%}
       {%- elif rclone_flag.value -%}
-        {%- do rclone_flags.append('--' ~ rclone_flag.key ~ '=' ~ rclone_flag.value) -%}
+        {%- set ns.rclone_flags = ns.rclone_flags + ['--' ~ rclone_flag.key ~ '=' ~ rclone_flag.value] -%}
       {%- endif -%}
     {%- endfor -%}
   serve
   {{ rclone_serve_protocol }}
   {{ rclone_serve_backend_remote }}:{{ rclone_serve_backend_path }}
-  {{ rclone_flags | join(' ') }}
+  {{ ns.rclone_flags | join(' ') }}
   {{ rclone_serve_args | join(' ') }}
