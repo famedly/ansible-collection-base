@@ -47,7 +47,7 @@
   when: lego_certificate_store_info.changed
 
 - name: "Ensure lego binary exists and has the correct version"
-  shell: "{{ lego_check_version_cmd }}"  # noqa: command-instead-of-shell
+  shell: "{{ lego_check_version_cmd }}" # noqa: command-instead-of-shell
   check_mode: false
   changed_when: false
   ignore_errors: true
@@ -169,7 +169,7 @@
 
     - name: "Compare SANs, notify handler if they differ"
       ansible.builtin.set_fact:
-        lego_certificate_sans_equal: >-2
+        lego_certificate_sans_equal: >-
           {{
             lego_certificate.domains is superset(lego_certificate_sans)
             and lego_certificate.domains is subset(lego_certificate_sans)
@@ -182,7 +182,7 @@
       ansible.builtin.set_fact:
         lego_certificate_pubkey_type_differs: "{{ lego_certificate_info.public_key_type != lego_certificate_wanted_keytype }}"
       vars:
-        lego_certificate_wanted_keytype: >-2
+        lego_certificate_wanted_keytype: >-
           {{
             "ECC" if "ec" in lego_configuration_merged.command_parameters.global["key-type"]
             else "RSA" if "rsa" in lego_configuration_merged.command_parameters.global["key-type"]

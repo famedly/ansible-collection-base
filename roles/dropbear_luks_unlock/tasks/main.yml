@@ -64,7 +64,7 @@
     line: "{{ module }}"
     state: "present"
   loop: "{{ initramfs_modules_to_load }}"
-  loop_control: {loop_var: "module"}
+  loop_control: { loop_var: "module" }
   notify: "rebuild-initramfs"
 
 - name: "Deploy authorized SSH keys for dropbear"
@@ -78,5 +78,5 @@
     pubkey_state: "{{ pubkey.state | default('present') if pubkey is mapping else 'present' }}"
     pubkey_ssh: "{{ pubkey.key if pubkey is mapping else pubkey }}"
   loop: "{{ dropbear_authorized_keys }}"
-  loop_control: {loop_var: "pubkey"}
+  loop_control: { loop_var: "pubkey" }
   notify: "rebuild-initramfs"

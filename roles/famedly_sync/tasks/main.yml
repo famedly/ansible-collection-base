@@ -1,5 +1,4 @@
 ---
-
 - name: "Assert config is defined"
   ansible.builtin.assert:
     that: "hostvars[inventory_hostname]['famedly_sync_config'] is defined"
@@ -40,7 +39,7 @@
 - name: "Deploy config"
   ansible.builtin.copy:
     # famedly_sync_config is defined, because the assertion passed
-    content: "{{ famedly_sync_config | to_nice_yaml(indent=2) }}"  # noqa: jinja[invalid]
+    content: "{{ famedly_sync_config | to_nice_yaml(indent=2) }}" # noqa: jinja[invalid]
     dest: "{{ famedly_sync_path }}/config.yaml"
     mode: "0400"
 

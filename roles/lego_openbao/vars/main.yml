@@ -14,7 +14,6 @@ lego_openbao_challenge_tls_mergeable:
   command_parameters:
     global:
       tls:
-
 lego_openbao_configuration_merged: >-
   {{
     {} | ansible.builtin.combine(

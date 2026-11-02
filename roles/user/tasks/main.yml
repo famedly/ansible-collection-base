@@ -9,7 +9,7 @@
   until: "task_result is success"
   retries: 3
   delay: 2
-  tags: ['prepare', 'prepare-users']
+  tags: ["prepare", "prepare-users"]
 
 - name: "Ensure doas is installed"
   community.general.apk:
@@ -21,12 +21,12 @@
   until: "task_result is success"
   retries: 3
   delay: 2
-  tags: ['prepare', 'prepare-users']
+  tags: ["prepare", "prepare-users"]
 
 - name: "Query groups available on server"
   ansible.builtin.getent:
     database: "group"
-  tags: ['deploy', 'deploy-users']
+  tags: ["deploy", "deploy-users"]
 
 - name: "Loop over users and include per-user tasks"
   ansible.builtin.include_tasks: "user.yml"
@@ -34,7 +34,7 @@
   loop_control:
     loop_var: "user"
     label: "{{ user.name }}"
-  tags: ['deploy', 'deploy-users']
+  tags: ["deploy", "deploy-users"]
 
 - name: "Template sudoers.d managed file"
   ansible.builtin.copy:
@@ -50,7 +50,7 @@
     validate: "/usr/sbin/visudo -cf %s"
   when: "ansible_os_family in ['Debian', 'RedHat']"
   become: true
-  tags: ['deploy', 'deploy-users']
+  tags: ["deploy", "deploy-users"]
 
 - name: "Template opendoas permissions"
   ansible.builtin.blockinfile:
@@ -66,4 +66,4 @@
     validate: "doas -C %s"
   when: "ansible_os_family in ['Chimera']"
   become: true
-  tags: ['deploy', 'deploy-users']
+  tags: ["deploy", "deploy-users"]

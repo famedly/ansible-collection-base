@@ -14,8 +14,7 @@ lego_challenge_tls_mergeable:
   command_parameters:
     global:
       tls:
-  
-lego_configuration_merged: >-2
+lego_configuration_merged: >-
   {{
     {} | ansible.builtin.combine(
       [
@@ -30,10 +29,10 @@ lego_configuration_merged: >-2
   }}
 
 # Build global command
-lego_command_domains: >-2
+lego_command_domains: >-
   {% for domain in lego_certificate.domains %} --domains={{ domain }}{%- endfor -%}
 
-lego_command_parameters_global: >-2
+lego_command_parameters_global: >-
   {% for parameter in lego_configuration_merged.command_parameters.global %}
   --{{ parameter }}
     {%- if not (
@@ -45,11 +44,11 @@ lego_command_parameters_global: >-2
     {%- endif -%}
   {%- endfor -%}
 
-lego_command_global_merged: >-2
+lego_command_global_merged: >-
   {{ lego_executable }}{{ lego_command_domains }}{{ lego_command_parameters_global }}
 
 # Build action commands
-lego_command_playbook_parameters: >-2
+lego_command_playbook_parameters: >-
   {% for parameter in lego_configuration_merged.command_parameters[lego_tasks.playbook] %}
   --{{ parameter }}
     {%- if not (
@@ -61,10 +60,10 @@ lego_command_playbook_parameters: >-2
     {%- endif -%}
   {%- endfor -%}
 
-lego_command_playbook: >-2
+lego_command_playbook: >-
   {{ lego_command_global_merged }} {{ lego_tasks.playbook }}{{ lego_command_playbook_parameters }}
 
-lego_command_systemd_parameters: >-2
+lego_command_systemd_parameters: >-
   {% for parameter in lego_configuration_merged.command_parameters[lego_tasks.systemd] %}
   --{{ parameter }}
     {%- if not (
@@ -76,16 +75,16 @@ lego_command_systemd_parameters: >-2
     {%- endif -%}
   {%- endfor -%}
 
-lego_command_systemd: >-2
+lego_command_systemd: >-
   {{ lego_command_global_merged }} {{ lego_tasks.systemd }}{{ lego_command_systemd_parameters }}
 
 # ACME account
 lego_acme_account_merged: "{{ lego_acme_account_defaults | combine(lego_acme_account | default({}), recursive=true) }}"
-lego_acme_account_base_path: >-2
+lego_acme_account_base_path: >-
   {{ lego_account_base_path }}/{{
     lego_configuration_merged.command_parameters.global.server | urlsplit('hostname')
   }}/{{ lego_configuration_merged.command_parameters.global.email }}
 lego_acme_key_base_path: "{{ lego_acme_account_base_path }}/keys"
 lego_acme_account_path: "{{ lego_acme_account_base_path }}/account.json"
-lego_acme_key_path: >-2
+lego_acme_key_path: >-
   {{ lego_acme_key_base_path }}/{{ lego_configuration_merged.command_parameters.global.email }}.key

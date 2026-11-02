@@ -1,5 +1,4 @@
 ---
-
 - name: Assert that required variables are defined
   ansible.builtin.assert:
     that:
@@ -31,7 +30,7 @@
   notify: container-rclone-serve-restart
 
 - name: Ensure container image is present locally
-  docker_image:
+  community.docker.docker_image:
     name: "{{ rclone_serve_container_image_reference }}"
     source: "pull"
     state: "present"

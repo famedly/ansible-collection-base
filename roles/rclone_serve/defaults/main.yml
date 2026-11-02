@@ -6,17 +6,16 @@ rclone_serve_version: "1.69.3"
 rclone_serve_user: "rclone"
 rclone_serve_base_path: "/opt/rclone-serve/"
 
-rclone_serve_protocol: ~
-rclone_serve_backend_config: ~
-rclone_serve_flags: ~
+rclone_serve_protocol:
+rclone_serve_backend_config:
+rclone_serve_flags:
 rclone_serve_args: []
-
 rclone_serve_backend_remote: "default"
 rclone_serve_backend_path: ""
 
 rclone_serve_config_file: "{{ rclone_serve_base_path ~ 'rclone-backend.conf' }}"
 
-rclone_serve_container_name: 'rclone-serve'
+rclone_serve_container_name: "rclone-serve"
 rclone_serve_container_env: {}
 rclone_serve_container_ports: []
 rclone_serve_container_labels: {}

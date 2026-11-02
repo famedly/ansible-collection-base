@@ -76,12 +76,12 @@ ldap_management_container_pull: true
 ldap_management_container_recreate: false
 
 # LDAP specific config
-ldap_domain: ~
+ldap_domain:
 ldap_dn: "dc={{ ldap_domain | regex_replace('\\.', ',dc=') }}"
-ldap_org: ~
+ldap_org:
 ldap_root_user: "admin"
-ldap_root_pass: ~
-ldap_root_pass_hash: ~
+ldap_root_pass:
+ldap_root_pass_hash:
 ldap_rootdn: "cn={{ ldap_root_user }},{{ ldap_dn }}"
 ldap_config_db: "olcDatabase={1}mdb,cn=config"
 

@@ -21,7 +21,7 @@
           sn: "surname"
           cn: "firstname lastname"
           mail: "{{ item }}@mail.{{ ldap_domain }}"
-          userPassword: "{SSHA}NdjwrLbBHcs9JfWRoz//91CSDRYpmKvx"  # password
+          userPassword: "{SSHA}NdjwrLbBHcs9JfWRoz//91CSDRYpmKvx" # password
         state: "present"
         bind_dn: "{{ ldap_rootdn }}"
         bind_pw: "{{ ldap_root_pass }}"

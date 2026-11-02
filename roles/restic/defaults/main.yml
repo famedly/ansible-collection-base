@@ -4,8 +4,8 @@ restic_version: "0.18.0"
 restic_job_description: "Run restic backup job"
 restic_binary: "/usr/local/bin/restic"
 
-restic_repository: ~
-restic_password: ~
+restic_repository:
+restic_password:
 
 restic_backup_paths: []
 restic_backup_commands: []
@@ -34,7 +34,7 @@ restic_default_environment:
   RESTIC_REPOSITORY: "{{ restic_repository | mandatory }}"
   RESTIC_PASSWORD: "{{ restic_password | mandatory }}"
 restic_environment: {}
-restic_systemd_environment: >-2
+restic_systemd_environment: >-
   {{ restic_default_environment | combine(restic_environment) }}
 
 restic_system_type: "{{ ansible_facts['system'] | lower }}"
@@ -52,7 +52,7 @@ restic_system_arch_map_ansible_arch:
   armv8: arm64
   i386: 386
 restic_source_server: "github.com"
-restic_source_url: >-2
+restic_source_url: >-
   https://{{
     restic_source_server
   }}/restic/restic/releases/download/v{{

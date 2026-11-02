@@ -51,7 +51,7 @@
 - name: "Set container version label to version of pulled image"
   ansible.builtin.set_fact:
     postgresql_container_labels_base:
-      version: >-2
+      version: >-
         {{
           postgresql_image_pulled.image.Config.Env
           | select('search', '^PG_VERSION=')
@@ -112,7 +112,7 @@
   ansible.builtin.lineinfile:
     path: "{{ postgresql_config_path }}/pg_ident.conf"
     insertafter: "# Ansible managed"
-    line: "root_postgres\troot\tpostgres"  # noqa no-tabs
+    line: "root_postgres\troot\tpostgres" # noqa no-tabs
   tags: ["prepare", "prepare-postgresql"]
 
 - name: "Ensure PostgreSQL container is started"
@@ -186,7 +186,7 @@
 - name: "Check and notify handler if restart is required"
   debug:
     msg: "{{ item.item.option }} changed. Restart required: {{ item.restart_required }}"
-  when: "item.changed"  # noqa no-handler
+  when: "item.changed" # noqa no-handler
   changed_when: "item.restart_required"
   notify: "postgresql_container_restart"
   loop: "{{ postgresql_set_result.results }}"

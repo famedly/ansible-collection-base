@@ -1,5 +1,4 @@
 ---
-
 - name: Restart rclone-serve container
   listen: container-rclone-serve-restart
   community.docker.docker_container:

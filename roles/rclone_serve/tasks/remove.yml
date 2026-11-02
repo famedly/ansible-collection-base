@@ -1,5 +1,4 @@
 ---
-
 - name: Ensure container is absent
   community.docker.docker_container:
     name: "{{ rclone_serve_container_name }}"
