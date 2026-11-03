@@ -1,5 +1,0 @@
----
-- hosts: "{{ rclone_serve_hosts | default('rclone_serve') }}"
-  become: true
-  roles:
-    - role: rclone_serve
