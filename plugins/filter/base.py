@@ -30,10 +30,6 @@ def reject_keys(pipe_in: dict, keys: list):
     return dict((k, v) for k, v in pipe_in.items() if k not in keys)
 
 
-def select_keys(pipe_in: dict, keys: list):
-    return dict((k, v) for k, v in pipe_in.items() if k in keys)
-
-
 def intersect(pipe_in: list, other: list):
     """Set theory intersect, but keeping order as piped in."""
     return [item for item in pipe_in if item in other]
@@ -48,6 +44,5 @@ class FilterModule(object):
             "split2multidict": split2multidict,
             "regex_replace": regex_replace,
             "reject_keys": reject_keys,
-            "select_keys": select_keys,
             "intersect": intersect,
         }
