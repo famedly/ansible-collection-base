@@ -3,14 +3,14 @@
   ansible.builtin.systemd:
     name: "sshd"
     state: "reloaded"
-  when: "ansible_service_mgr == 'systemd'"
+  when: "ansible_facts.service_mgr == 'systemd'"
   listen: "reload sshd"
 
 - name: "Reload sshd using runit"
   community.general.runit:
     name: "sshd"
     state: "reloaded"
-  when: "ansible_service_mgr == 'runit'"
+  when: "ansible_facts.service_mgr == 'runit'"
   listen: "reload sshd"
 
 - name: "Restart sshd using dinit"
@@ -20,5 +20,5 @@
       - --system
       - restart
       - sshd
-  when: ansible_os_family in ["Chimera"]
+  when: ansible_facts.os_family in ["Chimera"]
   listen: "reload sshd"

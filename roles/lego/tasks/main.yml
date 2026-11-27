@@ -3,9 +3,9 @@
   ansible.builtin.apt:
     name: >-
       {{
-        (ansible_distribution_major_version | string in lego_dependencies[ansible_distribution])
-          | ternary(lego_dependencies[ansible_distribution][ansible_distribution_major_version | string],
-                    lego_dependencies[ansible_distribution]['all'])
+        (ansible_facts.distribution_major_version | string in lego_dependencies[ansible_facts.distribution])
+          | ternary(lego_dependencies[ansible_facts.distribution][ansible_facts.distribution_major_version | string],
+                    lego_dependencies[ansible_facts.distribution]['all'])
       }}
   when: lego_install_dependencies | bool and ansible_facts['pkg_mgr'] == 'apt'
 

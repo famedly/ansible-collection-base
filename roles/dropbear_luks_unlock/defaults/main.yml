@@ -16,10 +16,10 @@ dropbear_initramfs_base_paths:
     base_path: "/etc/dropbear/initramfs"
     config_file: "dropbear.conf"
 
-dropbear_initramfs_base_path: "{{ (dropbear_initramfs_base_paths[ansible_distribution][ansible_distribution_major_version | string]
+dropbear_initramfs_base_path: "{{ (dropbear_initramfs_base_paths[ansible_facts.distribution][ansible_facts.distribution_major_version | string]
                                    | default(dropbear_initramfs_base_paths.default)).base_path }}"
 
-dropbear_initramfs_config_file: "{{ (dropbear_initramfs_base_paths[ansible_distribution][ansible_distribution_major_version | string]
+dropbear_initramfs_config_file: "{{ (dropbear_initramfs_base_paths[ansible_facts.distribution][ansible_facts.distribution_major_version | string]
                                      | default(dropbear_initramfs_base_paths.default)).config_file }}"
 dropbear_initramfs_config_path: "{{ dropbear_initramfs_base_path }}/{{ dropbear_initramfs_config_file }}"
 dropbear_initramfs_authorized_keys_path: "{{ dropbear_initramfs_base_path }}/authorized_keys"
