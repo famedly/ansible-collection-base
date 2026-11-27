@@ -3,7 +3,7 @@
   ansible.builtin.package:
     name: "sudo"
     state: "present"
-  when: "ansible_os_family in ['Debian', 'RedHat']"
+  when: "ansible_facts.os_family in ['Debian', 'RedHat']"
   become: true
   register: "task_result"
   until: "task_result is success"
@@ -15,7 +15,7 @@
   community.general.apk:
     name: "opendoas"
     state: "present"
-  when: "ansible_os_family in ['Chimera']"
+  when: "ansible_facts.os_family in ['Chimera']"
   become: true
   register: "task_result"
   until: "task_result is success"
@@ -48,7 +48,7 @@
     owner: "root"
     mode: "0440"
     validate: "/usr/sbin/visudo -cf %s"
-  when: "ansible_os_family in ['Debian', 'RedHat']"
+  when: "ansible_facts.os_family in ['Debian', 'RedHat']"
   become: true
   tags: ['deploy', 'deploy-users']
 
@@ -64,6 +64,6 @@
     owner: "root"
     mode: "0644"
     validate: "doas -C %s"
-  when: "ansible_os_family in ['Chimera']"
+  when: "ansible_facts.os_family in ['Chimera']"
   become: true
   tags: ['deploy', 'deploy-users']
